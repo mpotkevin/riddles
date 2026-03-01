@@ -10,33 +10,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
     <style>
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-20px); } 75% { transform: translateX(20px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         .animate-shake { animation: shake 0.1s ease-in-out infinite; }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 10px; }
         
         body {
             background-color: #450a0a; /* red-950 */
             margin: 0;
-            overflow-x: hidden;
+            overflow: hidden; /* 核心調整：禁止主視窗捲動 */
             font-family: 'Noto Serif TC', serif;
         }
 
         .calligraphy-title {
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.4), 0 0 8px rgba(253, 224, 71, 0.3);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4), 0 0 6px rgba(253, 224, 71, 0.2);
+            white-space: nowrap; /* 確保不換行 */
         }
 
         .lantern-inner-glow {
-            background: radial-gradient(circle at 50% 40%, rgba(253, 224, 71, 0.35) 0%, transparent 80%);
+            background: radial-gradient(circle at 50% 40%, rgba(253, 224, 71, 0.3) 0%, transparent 80%);
         }
 
-        /* 答對後的精緻印章樣式 */
         .done-stamp {
             background: linear-gradient(135deg, #166534 0%, #064e3b 100%);
-            box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 8px rgba(255,255,255,0.2);
-            border: 2px solid #fde047;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 0 5px rgba(255,255,255,0.2);
+            border: 1.5px solid #fde047;
         }
     </style>
 </head>
@@ -46,7 +46,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 使用內聯 SVG 確保在 GitHub 上不會失效
         const SVGIcons = {
             timer: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
             trophy: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
@@ -73,20 +72,20 @@
         const useSoundEffect = () => {
             const audioCtxRef = useRef(null);
             const play = (freq, type, duration, gainValue = 0.1) => {
-                if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
-                const ctx = audioCtxRef.current;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + duration);
+                try {
+                    if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+                    const ctx = audioCtxRef.current;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + duration);
+                } catch(e) {}
             };
             return {
                 playCorrect: () => { play(523.25, 'sine', 0.4, 0.1); play(659.25, 'sine', 0.4, 0.1); },
@@ -95,16 +94,14 @@
             };
         };
 
-        const Footer = () => (
-            <div className="w-full text-center py-6 mt-auto">
-                <a href="https://www.facebook.com/mpotkevin" target="_blank" rel="noopener noreferrer" className="text-yellow-500/60 hover:text-yellow-400 font-bold transition-all text-xl flex items-center justify-center gap-2 group">
+        const Footer = ({ isSmall = false }) => (
+            <div className={`w-full text-center ${isSmall ? 'py-2' : 'py-6'} mt-auto`}>
+                <a href="https://www.facebook.com/mpotkevin" target="_blank" rel="noopener noreferrer" className={`${isSmall ? 'text-sm' : 'text-xl'} text-yellow-500/60 hover:text-yellow-400 font-bold transition-all flex items-center justify-center gap-2 group`}>
                     <span>設計：職能治療師 - 鄭凱文</span>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">🔗</span>
                 </a>
             </div>
         );
 
-        // 題庫數據維持 100 題
         const INITIAL_RIDDLES = [
             { id: '1', category: "食物", question: "小白雞，穿白袍，跳進水裡洗個澡，浮上來，變胖了。", answer: "元宵" },
             { id: '2', category: "動物", question: "八隻腳，抬面鼓，兩把剪刀鼓前舞。", answer: "螃蟹" },
@@ -146,66 +143,16 @@
             { id: '38', category: "食物", question: "青皮包白瓤，外型像條槓。", answer: "絲瓜" },
             { id: '39', category: "字謎", question: "左邊綠，右邊紅，左右相遇起涼風。", answer: "秋" },
             { id: '40', category: "物品", question: "兩姊妹，一樣長，酸甜苦辣她先嚐。", answer: "筷子" },
-            { id: '41', category: "自然", question: "紅公公，早起行，傍晚時分落西山。", answer: "太陽" },
-            { id: '42', category: "台灣地名", question: "懷胎十月（打一地名）。", answer: "土城" },
-            { id: '43', category: "成語", question: "螃蟹走路（打一成語）。", answer: "橫行霸道" },
-            { id: '44', category: "動物", question: "大公雞，生來沒羽毛，昂頭叫一聲，全村都知曉。", answer: "鬧鐘" },
-            { id: '45', category: "食物", question: "金枕頭，銀枕頭，剝開皮，肉黃油。", answer: "榴槤" },
-            { id: '46', category: "台灣地名", question: "空中霸王（打一地名）。", answer: "高雄" },
-            { id: '47', category: "台灣地名", question: "把守第一關（打一地名）。", answer: "頭城" },
-            { id: '48', category: "台灣地名", question: "飲水思源（打一地名）。", answer: "澎湖" },
-            { id: '49', category: "台灣地名", question: "雙喜臨門（打一地名）。", answer: "嘉義" },
-            { id: '50', category: "台灣地名", question: "南天門（打一地名）。", answer: "南投" },
-            { id: '51', category: "自然", question: "亮晶晶，掛天空，像眼睛，眨不停。", answer: "星星" },
-            { id: '52', category: "動物", question: "像龍不是龍，生在深海中，游動快如風。", answer: "魚" },
-            { id: '53', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
-            { id: '54', category: "物品", question: "兩隻小口袋，天天隨身帶，腳丫不痛快。", answer: "襪子" },
-            { id: '55', category: "字謎", question: "十個哥哥。", answer: "克" },
-            { id: "56", category: "台灣地名", question: "熱鬧非凡（打一地名）。", answer: "羅東" },
-            { id: "57", category: "食物", question: "金黃外衣穿身上，身材彎彎像小船。", answer: "香蕉" },
-            { id: "58", category: "成語", question: "打雷不下雨（打一成語）。", answer: "虛張聲勢" },
-            { id: "59", category: "自然", question: "白色羽毛漫天飛，冷風一吹地全白。", answer: "雪" },
-            { id: "60", category: "字謎", question: "守門員。", answer: "閃" },
-            { id: "61", category: "台灣地名", question: "忠孝節義（打一地名）。", answer: "善化" },
-            { id: "62", category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
-            { id: "63", category: "動物", question: "會飛不是鳥，愛在夜裡跑，倒掛睡覺好。", answer: "蝙蝠" },
-            { id: "64", category: "物品", question: "圓圓腦殼長長柄，照它一下臉變美。", answer: "鏡子" },
-            { id: "65", category: "字謎", question: "山上還有山。", answer: "出" },
-            { id: "66", category: "食物", question: "紅紅臉，綠頭髮，埋在土裡不說話。", answer: "紅蘿蔔" },
-            { id: "67", category: "台灣地名", question: "地圖（打一地名）。", answer: "台西" },
-            { id: "68", category: "動物", question: "長長脖子高個頭，愛在樹頂吃綠葉。", answer: "長頸鹿" },
-            { id: "69", category: "物品", question: "一扇門，開又關，冷氣跑不出。", answer: "冰箱" },
-            { id: "70", category: "字謎", question: "一月一日。", answer: "明" },
-            { id: "71", category: "台灣地名", question: "北斗星（打一地名）。", answer: "彰化" },
-            { id: "72", category: "腦筋急轉彎", question: "什麼雞沒有翅膀？", answer: "田雞" },
-            { id: "73", category: "自然", question: "來無影，去無踪，能吹動樹葉。", answer: "風" },
-            { id: "74", category: "成語", question: "舉手投降（打一成語）。", answer: "不戰而降" },
-            { id: "75", category: "物品", question: "有風它不動，一動就有風。", answer: "扇子" },
-            { id: "76", category: "字謎", question: "一家十一口。", answer: "吉" },
-            { id: "77", category: "食物", question: "麻屋子，紅帳子，裡面住個白胖子。", answer: "花生" },
-            { id: "78", category: "台灣地名", question: "被子太短（打一地名）。", answer: "鹿谷" },
-            { id: "79", category: "動物", question: "小小游泳家，嘴裡吐泡泡。", answer: "金魚" },
-            { id: '80', category: "字謎", question: "有人有他。", answer: "他" },
-            { id: '81', category: "自然", question: "有時圓圓像個盤，有時彎彎像條船。", answer: "月亮" },
-            { id: '82', category: "物品", question: "一根棍子長又長，頭上開花亮堂堂。", answer: "手電筒" },
-            { id: '83', category: "台灣地名", question: "雙倍利息（打一地名）。", answer: "加祿" },
-            { id: '84', category: "字謎", question: "一月七日。", answer: "脂" },
-            { id: '85', category: "食物", question: "青皮包紅心，黑籽裡面藏。", answer: "西瓜" },
-            { id: '86', category: "動物", question: "大嘴巴，綠衣裳，歌唱家。", answer: "青蛙" },
-            { id: '87', category: "成語", question: "三加四（打一成語）。", answer: "不三不四" },
-            { id: '88', category: "物品", question: "四角方方，薄薄一張，寫字畫畫全靠它。", answer: "紙" },
-            { id: '89', category: "台灣地名", question: "森林之王（打一地名）。", answer: "獅潭" },
-            { id: '90', category: "字謎", question: "有人在心上。", answer: "您" },
-            { id: '91', category: "食物", question: "紅紅罈子，裝滿紅餃子，吐出白珠子。", answer: "橘子" },
-            { id: '92', category: "動物", question: "大姐紮燈籠，二姐織網捉飛蟲。", answer: "蜘蛛" },
-            { id: '93', category: "成語", question: "愚公移山（打一成語）。", answer: "開門見山" },
-            { id: '94', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
-            { id: '95', category: "物品", question: "兩隻小口袋，天天隨身帶。", answer: "襪子" },
-            { id: '96', category: "台灣地名", question: "海中綠洲（打一地名）。", answer: "澎湖" },
-            { id: '97', category: "字謎", question: "十個哥哥。", answer: "克" },
-            { id: '98', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
-            { id: '99', category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
-            { id: '100', category: "台灣地名", question: "長生不老（打一地名）。", answer: "恆春" }
+            { id: '41', category: "台灣地名", question: "懷胎十月（打一地名）。", answer: "土城" },
+            { id: '42', category: "台灣地名", question: "把守第一關（打一地名）。", answer: "頭城" },
+            { id: '43', category: "台灣地名", question: "飲水思源（打一地名）。", answer: "澎湖" },
+            { id: '44', category: "台灣地名", question: "雙喜臨門（打一地名）。", answer: "嘉義" },
+            { id: '45', category: "台灣地名", question: "南天門（打一地名）。", answer: "南投" },
+            { id: '46', category: "台灣地名", question: "北斗星（打一地名）。", answer: "彰化" },
+            { id: '47', category: "台灣地名", question: "天下太平（打一地名）。", answer: "太平" },
+            { id: '48', category: "台灣地名", question: "忠孝節義（打一地名）。", answer: "善化" },
+            { id: '49', category: "台灣地名", question: "大火（打一地名）。", answer: "赤崁" },
+            { id: '50', category: "台灣地名", question: "長生不老（打一地名）。", answer: "恆春" }
         ];
 
         const App = () => {
@@ -334,52 +281,24 @@
             };
 
             const Lantern = ({ number, category, isDone, onClick }) => (
-                <div onClick={onClick} className={`relative cursor-pointer transition-all duration-500 group flex flex-col items-center ${isDone ? 'opacity-50' : 'hover:scale-110 active:scale-95'}`}>
-                    {/* 類別標籤 */}
-                    <div className={`mb-3 px-4 py-1 rounded-full text-sm font-black border transition-all shadow-sm ${isDone ? 'bg-gray-800 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
+                <div onClick={onClick} className={`relative cursor-pointer transition-all duration-300 group flex flex-col items-center ${isDone ? 'opacity-50' : 'hover:scale-105 active:scale-95'}`}>
+                    <div className={`mb-1 px-3 py-0.5 rounded-full text-xs font-black border transition-all ${isDone ? 'bg-gray-800 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
                         {category}
                     </div>
-
                     <div className="relative">
-                        {/* 提手繩 */}
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-yellow-600/50" />
-                        
-                        {/* 燈籠本體 */}
-                        <div className={`w-28 h-32 rounded-[3rem] relative flex items-center justify-center border-2 overflow-hidden transition-all shadow-[0_8px_20px_rgba(0,0,0,0.5)] ${isDone ? 'bg-gray-800 border-gray-600' : 'bg-gradient-to-b from-red-500 via-red-600 to-red-800 border-yellow-500/40'}`}>
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0.5 h-2 bg-yellow-600/50" />
+                        <div className={`w-20 h-24 rounded-[2rem] relative flex items-center justify-center border-2 overflow-hidden transition-all shadow-lg ${isDone ? 'bg-gray-800 border-gray-600' : 'bg-gradient-to-b from-red-500 via-red-600 to-red-800 border-yellow-500/40'}`}>
                             {!isDone && <div className="absolute inset-0 lantern-inner-glow" />}
-                            
-                            {/* 燈籠架線條 */}
-                            <div className="absolute inset-0 flex justify-around px-5 pointer-events-none opacity-20">
-                                <div className="w-px h-full bg-black/40" />
-                                <div className="w-px h-full bg-black/40" />
-                            </div>
-
-                            {/* 數字 - 如果完成則縮小並降低透明度 */}
-                            <span className={`text-white font-serif font-black transition-all ${isDone ? 'text-2xl opacity-20' : 'text-5xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'}`}>
+                            <span className={`text-white font-serif font-black transition-all ${isDone ? 'text-xl opacity-20' : 'text-4xl drop-shadow-md'}`}>
                                 {number}
                             </span>
-
-                            {/* 上下箍環 */}
-                            <div className="absolute top-0 w-full h-2.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800 border-b border-yellow-900/50" />
-                            <div className="absolute bottom-0 w-full h-2.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800 border-t border-yellow-900/50" />
+                            <div className="absolute top-0 w-full h-1.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800" />
+                            <div className="absolute bottom-0 w-full h-1.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800" />
                         </div>
-
-                        {/* 底部流蘇 */}
-                        <div className="flex flex-col items-center mt-[-2px]">
-                            <div className="w-6 h-1 bg-yellow-600 rounded-sm" />
-                            <div className="w-0.5 h-4 bg-red-700" />
-                            <div className="flex gap-0.5">
-                                <div className="w-1.5 h-10 bg-red-600 rounded-full origin-top animate-pulse" />
-                                <div className="w-1.5 h-12 bg-red-700 rounded-full origin-top animate-pulse" />
-                                <div className="w-1.5 h-10 bg-red-600 rounded-full origin-top animate-pulse" />
-                            </div>
-                        </div>
-
-                        {/* 答對後的精緻印章樣式 */}
                         {isDone && (
-                            <div className="absolute -top-2 -right-2 z-30">
-                                <div className="done-stamp w-12 h-12 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                                    <Icon name="check" size={28} className="text-yellow-200" />
+                            <div className="absolute -top-1 -right-1 z-30">
+                                <div className="done-stamp w-8 h-8 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                    <Icon name="check" size={18} className="text-yellow-200" />
                                 </div>
                             </div>
                         )}
@@ -388,245 +307,235 @@
             );
 
             return (
-                <div className="min-h-screen bg-red-950 text-yellow-100 font-sans selection:bg-yellow-500 selection:text-red-950 overflow-hidden relative flex flex-col">
-                    {/* 背景動態裝飾 */}
-                    <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
-                        {[...Array(10)].map((_, i) => (
-                            <div key={i} className="absolute border-2 border-yellow-500 rounded-full w-96 h-48" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, transform: `rotate(${Math.random() * 360}deg)` }} />
+                <div className="h-screen bg-red-950 text-yellow-100 font-sans selection:bg-yellow-500 selection:text-red-950 overflow-hidden relative flex flex-col">
+                    <div className="absolute inset-0 opacity-5 pointer-events-none">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="absolute border-2 border-yellow-500 rounded-full w-64 h-32" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, transform: `rotate(${Math.random() * 360}deg)` }} />
                         ))}
                     </div>
 
                     {(view === 'game' || view === 'roundSummary') && (
-                        <div className="bg-red-900/90 backdrop-blur-md border-b-2 border-yellow-600 p-4 sticky top-0 z-40 shadow-2xl flex flex-wrap justify-between items-center gap-4 font-serif">
+                        <div className="bg-red-900/95 backdrop-blur-md border-b-2 border-yellow-600 p-3 sticky top-0 z-40 shadow-2xl flex justify-between items-center h-16 shrink-0">
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
-                                    <Icon name="timer" size={22} className="text-yellow-400" />
-                                    <span className="font-mono text-2xl">{formatTime(timer)}</span>
+                                <div className="flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full border border-yellow-700">
+                                    <Icon name="timer" size={18} className="text-yellow-400" />
+                                    <span className="font-mono text-xl">{formatTime(timer)}</span>
                                 </div>
-                                <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
-                                    <Icon name="trophy" size={22} className="text-yellow-400" />
-                                    <span className="text-2xl font-bold">{completed.size} / {Math.min(20, currentRoundRiddles.length)}</span>
+                                <div className="flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full border border-yellow-700">
+                                    <Icon name="trophy" size={18} className="text-yellow-400" />
+                                    <span className="text-xl font-bold">{completed.size} / {Math.min(20, currentRoundRiddles.length)}</span>
                                 </div>
                             </div>
                             {mode === 'group' && (
-                                <div className="flex items-center justify-center gap-2 flex-grow max-w-2xl px-4">
+                                <div className="flex items-center justify-center gap-2 flex-grow max-w-xl px-4">
                                     {[...Array(teamCount)].map((_, i) => (
-                                        <button key={i} onClick={() => { sound.playClick(); setActiveTeamIdx(i); }} className={`flex-1 min-w-0 max-w-[150px] px-2 py-2 rounded-2xl border-2 transition-all flex flex-col items-center group relative ${activeTeamIdx === i ? 'bg-yellow-600 text-red-950 border-yellow-300 shadow-[0_0_20px_rgba(234,179,8,0.5)] scale-105' : 'bg-red-800 border-red-700 text-yellow-600 hover:border-yellow-900'}`}>
-                                            <span className="text-[12px] uppercase font-black opacity-80 truncate w-full text-center">Team {i + 1}</span>
-                                            <span className="text-3xl font-black">{(scores[i] || 0).toString()}</span>
+                                        <button key={i} onClick={() => { sound.playClick(); setActiveTeamIdx(i); }} className={`flex-1 min-w-0 max-w-[120px] px-2 py-1 rounded-xl border-2 transition-all flex flex-col items-center group relative ${activeTeamIdx === i ? 'bg-yellow-600 text-red-950 border-yellow-300 shadow-[0_0_15px_rgba(234,179,8,0.5)] scale-105' : 'bg-red-800 border-red-700 text-yellow-600 hover:border-yellow-900'}`}>
+                                            <span className="text-[10px] uppercase font-black opacity-80 truncate">Team {i + 1}</span>
+                                            <span className="text-xl font-black">{(scores[i] || 0).toString()}</span>
                                         </button>
                                     ))}
                                 </div>
                             )}
-                            <div className="flex gap-2">
-                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="p-3 hover:bg-white/10 rounded-full transition-all text-yellow-500"><Icon name="refresh" size={28} /></button>
-                            </div>
+                            <button onClick={() => { sound.playClick(); setView('menu'); }} className="p-2 hover:bg-white/10 rounded-full text-yellow-500 transition-all"><Icon name="refresh" size={24} /></button>
                         </div>
                     )}
 
-                    <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
+                    <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4 min-h-0">
                         {view === 'menu' && (
-                            <div className="max-w-4xl w-full text-center space-y-16 animate-in fade-in zoom-in duration-700">
+                            <div className="max-w-4xl w-full text-center space-y-12 animate-in fade-in zoom-in duration-700 h-full flex flex-col justify-center">
                                 <div className="relative inline-block mb-4 group">
-                                    <div className="relative">
-                                        <h1 className="text-9xl md:text-[11.5rem] font-serif font-black tracking-widest leading-tight drop-shadow-[0_10px_20px_rgba(0,0,0,0.7)] bg-clip-text text-transparent bg-gradient-to-b from-yellow-50 via-yellow-500 to-yellow-900 calligraphy-title">
-                                            元宵猜燈謎
-                                        </h1>
-                                        <div className="absolute -inset-x-12 -bottom-2 h-[4px] bg-gradient-to-r from-transparent via-yellow-700/60 to-transparent" />
-                                    </div>
-                                    <p className="mt-12 text-yellow-200/80 text-4xl font-serif italic tracking-[0.5em] drop-shadow-sm opacity-90">
+                                    <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif font-black leading-tight drop-shadow-xl bg-clip-text text-transparent bg-gradient-to-b from-yellow-50 via-yellow-500 to-yellow-900 calligraphy-title">
+                                        元宵猜燈謎
+                                    </h1>
+                                    <p className="mt-8 text-yellow-200/80 text-2xl font-serif italic tracking-[0.4em] opacity-90">
                                         舊時燈謎新玩法，健腦暖心慶元宵
                                     </p>
                                 </div>
-                                <div className="space-y-8 flex flex-col items-center w-full pt-10">
-                                    <button onClick={() => handleModeClick('single')} className="w-full max-w-md bg-red-700 hover:bg-red-600 text-yellow-100 py-8 rounded-[3rem] text-4xl font-black border-b-[12px] border-red-950 transition-all flex items-center justify-center gap-5 active:translate-y-2 active:border-b-[4px] shadow-2xl">
-                                        <Icon name="user" size={40}/> 個人模式挑戰
+                                <div className="space-y-6 flex flex-col items-center w-full">
+                                    <button onClick={() => handleModeClick('single')} className="w-full max-w-sm bg-red-700 hover:bg-red-600 text-yellow-100 py-6 rounded-[2rem] text-2xl font-black border-b-[8px] border-red-950 transition-all flex items-center justify-center gap-4 active:translate-y-1 shadow-2xl">
+                                        <Icon name="user" size={32}/> 個人模式挑戰
                                     </button>
-                                    <button onClick={() => handleModeClick('group')} className="w-full max-w-md bg-yellow-600 hover:bg-yellow-500 text-red-950 py-8 rounded-[3rem] text-4xl font-black border-b-[12px] border-yellow-800 transition-all flex items-center justify-center gap-5 active:translate-y-2 active:border-b-[4px] shadow-2xl">
-                                        <Icon name="users" size={40}/> 分組趣味競賽
+                                    <button onClick={() => handleModeClick('group')} className="w-full max-w-sm bg-yellow-600 hover:bg-yellow-500 text-red-950 py-6 rounded-[2rem] text-2xl font-black border-b-[8px] border-yellow-800 transition-all flex items-center justify-center gap-4 active:translate-y-1 shadow-2xl">
+                                        <Icon name="users" size={32}/> 分組趣味競賽
                                     </button>
                                 </div>
-                                <button onClick={() => { sound.playClick(); setIsSettingsOpen(true); }} className="fixed bottom-10 right-10 bg-red-900/90 backdrop-blur-md p-8 rounded-full border-2 border-yellow-600 shadow-[0_0_30px_rgba(0,0,0,0.4)] hover:bg-red-800 hover:scale-110 transition-all text-yellow-500 z-30 group">
-                                    <Icon name="settings" size={48} className="group-hover:rotate-180 transition-transform duration-1000" />
-                                </button>
+                                <button onClick={() => { sound.playClick(); setIsSettingsOpen(true); }} className="fixed bottom-8 right-8 bg-red-900/90 backdrop-blur-md p-6 rounded-full border-2 border-yellow-600 shadow-xl hover:scale-110 transition-all text-yellow-500 z-30"><Icon name="settings" size={32}/></button>
                                 <Footer />
                             </div>
                         )}
 
                         {view === 'teamSelect' && (
-                            <div className="max-w-5xl w-full text-center space-y-10 animate-in fade-in slide-in-from-bottom duration-500">
-                                <h2 className="text-8xl font-serif font-black text-yellow-500 mb-20 drop-shadow-lg">請選擇競賽組數</h2>
-                                <div className="grid grid-cols-3 gap-12 p-4">
+                            <div className="max-w-4xl w-full text-center space-y-10 h-full flex flex-col justify-center">
+                                <h2 className="text-6xl font-serif font-black text-yellow-500 mb-10">請選擇競賽組數</h2>
+                                <div className="grid grid-cols-3 gap-8 p-4 max-w-2xl mx-auto w-full">
                                     {[2, 3, 4].map(num => (
-                                        <button key={num} onClick={() => { sound.playClick(); startNewGame('group', num); }} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[4rem] py-24 transition-all transform hover:scale-105 flex flex-col items-center group shadow-2xl">
-                                            <span className="text-9xl md:text-[11rem] font-black text-yellow-400 group-hover:text-yellow-200 drop-shadow-md">{num}</span>
-                                            <span className="text-4xl font-bold mt-8 opacity-80 uppercase tracking-widest font-serif">組隊競賽</span>
+                                        <button key={num} onClick={() => { sound.playClick(); startNewGame('group', num); }} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[2.5rem] py-16 transition-all transform hover:scale-105 flex flex-col items-center shadow-xl">
+                                            <span className="text-8xl font-black text-yellow-400">{num}</span>
+                                            <span className="text-xl font-bold mt-4 opacity-80 uppercase tracking-widest font-serif">組隊競賽</span>
                                         </button>
                                     ))}
                                 </div>
-                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="text-yellow-500 hover:text-yellow-300 font-bold text-4xl underline underline-offset-[16px] mt-20 transition-all font-serif">返回主選單</button>
-                                <Footer />
+                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="text-yellow-500 hover:text-yellow-300 font-bold text-2xl underline underline-offset-8 transition-all font-serif">返回主選單</button>
+                                <Footer isSmall />
                             </div>
                         )}
 
                         {view === 'game' && (
-                            <div className="w-full max-w-7xl animate-in fade-in duration-700 pb-24">
-                                <div className="text-center mb-16">
-                                    <span className="bg-red-900/95 px-14 py-5 rounded-full border-2 border-yellow-600 text-yellow-400 font-black text-3xl shadow-xl tracking-widest uppercase font-serif">
-                                        當前挑戰：第 {(round * 20 + 1).toString()} 至 {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題
+                            <div className="w-full max-w-6xl h-full flex flex-col pb-4 min-h-0">
+                                <div className="text-center mb-6 shrink-0">
+                                    <span className="bg-red-900/90 px-8 py-2 rounded-full border-2 border-yellow-600 text-yellow-400 font-black text-xl shadow-lg">
+                                        挑戰：第 {(round * 20 + 1).toString()} - {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題
                                     </span>
                                 </div>
-                                <div className="bg-red-900/40 backdrop-blur-xl border-4 border-yellow-600/30 rounded-[5rem] p-16 md:p-24 shadow-inner grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-y-28 gap-x-14 justify-items-center">
-                                    {currentRoundRiddles.map((r, i) => (
-                                        <Lantern key={r.id} number={round * 20 + i + 1} category={r.category} isDone={completed.has(i)} onClick={() => handleRiddleClick(i)} />
-                                    ))}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-red-900/20 rounded-[3rem] border-2 border-yellow-600/10 min-h-0">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-8 gap-y-12 justify-items-center py-4">
+                                        {currentRoundRiddles.map((r, i) => (
+                                            <Lantern key={r.id} number={round * 20 + i + 1} category={r.category} isDone={completed.has(i)} onClick={() => handleRiddleClick(i)} />
+                                        ))}
+                                    </div>
                                 </div>
-                                <Footer />
+                                <Footer isSmall />
                             </div>
                         )}
 
                         {view === 'roundSummary' && (
-                            <div className="text-center space-y-10 animate-in zoom-in duration-500 pb-24">
-                                <div className="text-[12rem] mb-6 animate-bounce">🏆</div>
-                                <h2 className="text-[7rem] font-serif font-black text-yellow-500 drop-shadow-md">挑戰完成！</h2>
-                                <div className="bg-red-900/60 p-16 rounded-[5rem] border-4 border-yellow-600 inline-block min-w-[600px] shadow-2xl">
-                                    <p className="text-5xl mb-10 font-bold text-yellow-200 font-serif">第 {(round * 20 + 1).toString()} ~ {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題</p>
+                            <div className="text-center space-y-6 h-full flex flex-col justify-center">
+                                <div className="text-9xl mb-4">🏆</div>
+                                <h2 className="text-6xl font-black text-yellow-500">挑戰完成！</h2>
+                                <div className="bg-red-900/60 p-10 rounded-[3rem] border-2 border-yellow-600/30 inline-block min-w-[400px]">
                                     {mode === 'group' && (
-                                        <div className="space-y-6 pt-10 border-t-2 border-yellow-600/30">
+                                        <div className="space-y-4">
                                             {[...Array(teamCount)].map((_, i) => (
-                                                <div key={i} className="flex justify-between items-center text-5xl bg-black/40 px-16 py-10 rounded-[3rem]">
-                                                    <span className="font-black text-yellow-50">第 {(i + 1).toString()} 組</span>
-                                                    <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
+                                                <div key={i} className="flex justify-between items-center text-3xl px-8 py-3 bg-black/30 rounded-2xl">
+                                                    <span className="font-black text-yellow-50">第 {i + 1} 組</span>
+                                                    <span className="font-black text-yellow-400">{scores[i] || 0} 分</span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex gap-12 justify-center mt-12">
-                                    <button onClick={() => { sound.playClick(); setView('result'); }} className="bg-red-800 hover:bg-red-700 text-yellow-400 px-24 py-10 rounded-[4rem] text-5xl font-black shadow-xl border-b-[12px] border-red-950 transition-all">結束遊戲</button>
-                                    { (round + 1) * 20 < gameRiddles.length && (
-                                        <button onClick={handleNextRound} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-24 py-10 rounded-[4rem] text-5xl font-black shadow-xl flex items-center gap-8 border-b-[12px] border-yellow-800 transition-all">
-                                            下一輪題 <Icon name="arrowRight" size={48}/>
-                                        </button>
+                                <div className="flex gap-8 justify-center">
+                                    <button onClick={() => setView('result')} className="bg-red-800 text-yellow-400 px-12 py-5 rounded-[2rem] text-3xl font-black active:translate-y-1">結束遊戲</button>
+                                    {(round + 1) * 20 < gameRiddles.length && (
+                                        <button onClick={handleNextRound} className="bg-yellow-600 text-red-950 px-12 py-5 rounded-[2rem] text-3xl font-black flex items-center gap-4 active:translate-y-1 shadow-lg">下一輪 <Icon name="arrowRight" size={32}/></button>
                                     )}
                                 </div>
-                                <Footer />
                             </div>
                         )}
 
                         {view === 'result' && (
-                            <div className="text-center space-y-12 animate-in zoom-in pb-24">
-                                <div className="text-[12rem] mb-10 animate-pulse">🎆</div>
-                                <h2 className="text-[8.5rem] font-serif font-black text-yellow-500 drop-shadow-2xl">燈謎大會大成功</h2>
-                                <div className="bg-red-900/50 p-24 rounded-[6rem] border-4 border-yellow-600 inline-block min-w-[800px] shadow-2xl">
-                                    <p className="text-7xl mb-14 font-black text-yellow-100 font-serif">總耗時：<span className="text-yellow-400 font-mono text-[7rem] ml-12">{formatTime(timer)}</span></p>
+                            <div className="text-center space-y-8 h-full flex flex-col justify-center">
+                                <div className="text-9xl mb-4">🎆</div>
+                                <h2 className="text-7xl font-black text-yellow-500">燈謎大會大成功</h2>
+                                <div className="bg-red-900/50 p-12 rounded-[4rem] border-2 border-yellow-600/30 inline-block min-w-[500px]">
+                                    <p className="text-4xl mb-8 font-black">耗時：<span className="text-yellow-400 font-mono text-6xl">{formatTime(timer)}</span></p>
                                     {mode === 'group' && (
-                                        <div className="space-y-10 pt-14 border-t-4 border-yellow-600/30">
+                                        <div className="space-y-4">
                                             {[...Array(teamCount)].map((_, i) => (
-                                                <div key={i} className={`flex justify-between items-center text-7xl px-24 py-14 rounded-[4rem] ${scores[i] === Math.max(...Object.values(scores)) ? 'bg-yellow-600/30 border-4 border-yellow-500 shadow-[0_0_50px_rgba(234,179,8,0.5)]' : 'bg-black/60'}`}>
-                                                    <span className="font-serif font-black">第 {(i + 1).toString()} 組</span>
-                                                    <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
+                                                <div key={i} className={`flex justify-between items-center text-4xl px-12 py-6 rounded-[2rem] ${scores[i] === Math.max(...Object.values(scores)) ? 'bg-yellow-600/30 border-2 border-yellow-500' : 'bg-black/60'}`}>
+                                                    <span className="font-serif">第 {i + 1} 組</span>
+                                                    <span className="text-yellow-400 font-black">{scores[i] || 0} 分</span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
-                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="block mx-auto mt-24 bg-yellow-600 hover:bg-yellow-500 text-red-950 px-32 py-12 rounded-[5.5rem] text-7xl font-black shadow-2xl border-b-[16px] border-yellow-800 active:translate-y-2">回主畫面</button>
-                                <Footer />
+                                <button onClick={() => setView('menu')} className="bg-yellow-600 text-red-950 px-20 py-8 rounded-[4rem] text-5xl font-black shadow-xl active:translate-y-2 mx-auto">回主畫面</button>
+                                <Footer isSmall />
                             </div>
                         )}
                     </main>
 
-                    {/* 設定視窗 */}
+                    {/* 設定視窗 - 大幅優化：縮小元件，增加題目瀏覽密度 */}
                     {isSettingsOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in">
-                            <div className="bg-red-900 border-4 border-yellow-600 rounded-[5rem] w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden font-serif">
-                                <div className="p-14 border-b-2 border-yellow-600/30 flex justify-between items-center bg-red-800/80">
+                            <div className="bg-red-900 border-2 border-yellow-600/30 rounded-[2.5rem] w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden font-serif">
+                                <div className="p-6 border-b border-yellow-600/20 flex justify-between items-center bg-red-800/80 shrink-0">
                                     <div>
-                                        <h2 className="text-7xl font-black text-yellow-500 flex items-center gap-6"><Icon name="settings" size={64}/> 題庫設定</h2>
-                                        <p className="text-yellow-200/60 mt-5 text-3xl font-serif">拖曳題目調整順序，序號決定遊戲燈籠編號</p>
+                                        <h2 className="text-4xl font-black text-yellow-500 flex items-center gap-4"><Icon name="settings" size={32}/> 題庫設定</h2>
+                                        <p className="text-yellow-200/50 text-base font-serif">拖曳排序，選取題目進入挑戰</p>
                                     </div>
-                                    <button onClick={() => { sound.playClick(); setIsSettingsOpen(false); }} className="p-6 hover:bg-white/10 rounded-full text-yellow-500 transition-all"><Icon name="close" size={64} /></button>
+                                    <button onClick={() => { sound.playClick(); setIsSettingsOpen(false); }} className="p-3 hover:bg-white/10 rounded-full text-yellow-500"><Icon name="close" size={32} /></button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto p-14 custom-scrollbar space-y-12 bg-red-950/40">
-                                    <div className="bg-red-900 p-10 rounded-[4rem] border-2 border-yellow-600/30 shadow-xl">
-                                        <h3 className="text-4xl font-black mb-8 flex items-center gap-4"><Icon name="plus" size={40}/> 手動新增題目</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                            <input type="text" placeholder="類別" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
-                                            <input type="text" placeholder="謎題內容" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
-                                            <div className="flex gap-8">
-                                                <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="flex-1 bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
-                                                <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-12 rounded-[2rem] font-black hover:bg-yellow-500 text-3xl shadow-lg transition-all">新增</button>
+                                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6 bg-red-950/40">
+                                    <div className="bg-red-900/60 p-6 rounded-3xl border border-yellow-600/20 shadow-inner shrink-0">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                            <input type="text" placeholder="類別" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-lg outline-none focus:border-yellow-400 text-white" />
+                                            <input type="text" placeholder="謎題" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-lg outline-none focus:border-yellow-400 text-white md:col-span-2" />
+                                            <div className="flex gap-4">
+                                                <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="flex-1 bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-lg outline-none focus:border-yellow-400 text-white" />
+                                                <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-6 rounded-xl font-black hover:bg-yellow-500 transition-all shrink-0">新增</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-8">
-                                        <div className="flex justify-between items-center mb-10">
-                                            <h3 className="text-5xl font-black">全部題型 ({riddlePool.length.toString()} 題)</h3>
-                                            <div className="flex gap-12">
-                                                <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set(riddlePool.map(r => r.id))); }} className="text-3xl text-yellow-500 font-bold hover:underline">全選</button>
-                                                <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set()); }} className="text-3xl text-yellow-500 font-bold hover:underline">全不選</button>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center px-2">
+                                            <h3 className="text-xl font-black text-yellow-500/80 tracking-widest">全部題庫 ({riddlePool.length} 題)</h3>
+                                            <div className="flex gap-6 text-sm font-bold text-yellow-500/60 underline underline-offset-4">
+                                                <button onClick={() => setSelectedPoolIds(new Set(riddlePool.map(r => r.id)))}>全選</button>
+                                                <button onClick={() => setSelectedPoolIds(new Set())}>清空</button>
                                             </div>
                                         </div>
-                                        <div className="grid gap-4">
+                                        <div className="grid gap-2">
                                             {riddlePool.map((r, idx) => (
                                                 <div key={r.id} draggable onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                                                    className={`bg-red-900/60 p-6 rounded-[2.5rem] border border-yellow-600/20 flex items-center justify-between group cursor-grab active:cursor-grabbing hover:border-yellow-600/50 transition-all ${draggedIdx === idx ? 'opacity-20 shadow-none' : 'shadow-lg'}`} >
-                                                    <div className="flex items-center gap-8 flex-1 text-white">
-                                                        <Icon name="grip" size={32} className="text-yellow-600/30" />
-                                                        <div className="text-3xl font-black text-yellow-500 w-16 text-center">#{idx + 1}</div>
-                                                        <button onClick={() => { sound.playClick(); const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-12 h-12 rounded-[1rem] border-2 flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950' : 'border-yellow-600/30 text-transparent'}`} ><Icon name="check" size={32} /></button>
-                                                        <div className="flex flex-col ml-6">
-                                                            <span className="text-xl text-yellow-500/50 font-black tracking-widest uppercase">{r.category}</span>
-                                                            <span className="text-3xl font-bold line-clamp-1">{r.question}</span>
+                                                    className={`bg-red-900/40 p-3 rounded-xl border border-yellow-600/10 flex items-center justify-between group cursor-grab active:cursor-grabbing hover:bg-red-900/80 transition-all ${draggedIdx === idx ? 'opacity-20' : ''}`} >
+                                                    <div className="flex items-center gap-4 flex-1 text-white">
+                                                        <Icon name="grip" size={20} className="text-yellow-600/20" />
+                                                        <div className="text-base font-black text-yellow-500/60 w-8">#{idx + 1}</div>
+                                                        <button onClick={() => { sound.playClick(); const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950' : 'border-yellow-600/20 text-transparent'}`} ><Icon name="check" size={18} /></button>
+                                                        <div className="flex flex-col ml-2 overflow-hidden">
+                                                            <span className="text-[10px] text-yellow-500/40 font-black uppercase tracking-widest">{r.category}</span>
+                                                            <span className="text-base font-medium line-clamp-1 opacity-90">{r.question}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-12 pr-8">
-                                                        <span className="text-3xl text-yellow-400 font-mono bg-black/40 px-8 py-3 rounded-[1.5rem] border border-yellow-900/50">謎底: {r.answer}</span>
-                                                        <button onClick={() => { sound.playClick(); setRiddlePool(prev => prev.filter(x => x.id !== r.id)); }} className="text-red-500 opacity-0 group-hover:opacity-100 p-4 hover:bg-red-500/20 rounded-full transition-all"><Icon name="trash" size={36} /></button>
+                                                    <div className="flex items-center gap-6 pr-4">
+                                                        <span className="text-sm text-yellow-400/70 font-mono bg-black/20 px-3 py-1 rounded-lg">謎底: {r.answer}</span>
+                                                        <button onClick={() => setRiddlePool(prev => prev.filter(x => x.id !== r.id))} className="text-red-500 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/20 rounded-full transition-all"><Icon name="trash" size={18} /></button>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="p-14 border-t-2 border-yellow-600/30 text-center bg-red-800"><button onClick={() => { sound.playClick(); setIsSettingsOpen(false); }} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-28 py-8 rounded-[4rem] text-5xl font-black shadow-xl border-b-[12px] border-yellow-800 transition-all">完成並關閉</button></div>
+                                <div className="p-6 border-t border-yellow-600/20 text-center bg-red-800 shrink-0"><button onClick={() => setIsSettingsOpen(false)} className="bg-yellow-600 text-red-950 px-12 py-3 rounded-2xl text-xl font-black shadow-lg">確認並儲存題庫</button></div>
                             </div>
                         </div>
                     )}
 
+                    {/* 答題視窗 - 精簡比例 */}
                     {selectedRiddle && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in">
-                            <div className="bg-red-800 border-[10px] border-yellow-500 rounded-[7rem] max-w-6xl w-full max-h-[92vh] overflow-y-auto shadow-[0_0_150px_rgba(0,0,0,1)] relative custom-scrollbar">
+                            <div className="bg-red-800 border-4 border-yellow-500 rounded-[5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col items-center">
                                 {mode === 'group' && (
-                                    <div className="sticky top-12 left-12 z-50 pointer-events-none">
-                                        <div className="absolute top-0 left-0 bg-white/90 backdrop-blur-lg text-red-950 px-14 py-6 rounded-full font-serif font-black shadow-2xl border-2 border-red-900/20 text-5xl">
-                                            第 {(activeTeamIdx + 1).toString()} 組
+                                    <div className="sticky top-8 left-8 z-50 pointer-events-none w-full px-8">
+                                        <div className="bg-white/90 backdrop-blur-lg text-red-950 px-8 py-3 rounded-full font-serif font-black shadow-2xl border border-red-900/10 text-3xl w-fit">
+                                            第 {activeTeamIdx + 1} 組
                                         </div>
                                     </div>
                                 )}
-                                <div className="text-center p-20 md:p-28 space-y-24">
-                                    <div className="inline-block px-16 py-5 bg-yellow-600 text-red-950 rounded-full text-5xl font-serif font-black shadow-lg border-b-8 border-yellow-800">{selectedRiddle.category} 謎題</div>
-                                    <h3 className="text-8xl md:text-[6rem] font-serif font-black leading-tight text-yellow-50 tracking-wider drop-shadow-xl">{selectedRiddle.question}</h3>
-                                    <div className="flex justify-center gap-10 flex-wrap">
+                                <div className="text-center p-12 md:p-16 space-y-12 w-full">
+                                    <div className="inline-block px-10 py-3 bg-yellow-600 text-red-950 rounded-full text-3xl font-serif font-black shadow-lg border-b-4 border-yellow-800">{selectedRiddle.category} 謎題</div>
+                                    <h3 className="text-6xl md:text-7xl font-serif font-black leading-tight text-yellow-50 tracking-wider drop-shadow-lg">{selectedRiddle.question}</h3>
+                                    <div className="flex justify-center gap-6 flex-wrap">
                                         {[...selectedRiddle.answer].map((char, i) => (
-                                            <div key={i} className={`w-32 h-32 md:w-36 md:h-36 border-4 rounded-[4rem] flex items-center justify-center text-8xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 scale-110 shadow-[0_0_50px_rgba(234,179,8,0.5)]' : 'bg-red-950/50 border-yellow-600/50 text-transparent'}`}>
+                                            <div key={i} className={`w-24 h-24 md:w-28 md:h-28 border-2 rounded-[2rem] flex items-center justify-center text-6xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 scale-105 shadow-xl' : 'bg-red-950/50 border-yellow-600/30 text-transparent'}`}>
                                                 {(i < hintLevel || showFullAnswer) ? char : '?'}
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="space-y-16">
+                                    <div className="space-y-10 w-full">
                                         {!showFullAnswer && (
-                                            <input autoFocus type="text" placeholder="請在此輸入謎底..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
-                                                className={`w-full bg-red-950 border-4 rounded-[5rem] px-20 py-16 text-7xl text-center outline-none transition-all placeholder:text-red-900/30 text-white ${feedback === 'correct' ? 'border-green-500 text-green-400' : feedback === 'wrong' ? 'border-red-500 animate-shake' : 'border-yellow-600 focus:border-yellow-400 shadow-inner'}`} />
+                                            <input autoFocus type="text" placeholder="請輸入謎底..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
+                                                className={`w-full bg-red-950 border-2 border-yellow-600/40 rounded-[3rem] px-10 py-8 text-5xl text-center outline-none focus:border-yellow-400 text-white`} />
                                         )}
-                                        <div className="grid grid-cols-2 gap-16">
-                                            <button onClick={() => { sound.playClick(); if(hintLevel < selectedRiddle.answer.length) setHintLevel(h => h+1); }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="py-12 rounded-[4rem] bg-orange-700 hover:bg-orange-600 text-yellow-100 flex items-center justify-center gap-8 disabled:opacity-30 transition-all font-black border-2 border-orange-500/30 text-5xl shadow-2xl"><Icon name="bulb" size={56}/> 提示一字</button>
-                                            <button onClick={() => { sound.playClick(); setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="py-12 rounded-[4rem] bg-yellow-900 hover:bg-yellow-800 text-yellow-400 flex items-center justify-center gap-8 disabled:opacity-30 transition-all font-black border-2 border-yellow-700/30 text-5xl shadow-2xl"><Icon name="eye" size={56}/> 直接公布</button>
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <button onClick={() => { if(hintLevel < selectedRiddle.answer.length) setHintLevel(h => h+1); }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="py-8 rounded-[2.5rem] bg-orange-700 hover:bg-orange-600 text-yellow-100 flex items-center justify-center gap-6 disabled:opacity-30 transition-all font-black text-3xl shadow-xl active:translate-y-1"><Icon name="bulb" size={32}/> 提示</button>
+                                            <button onClick={() => { setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="py-8 rounded-[2.5rem] bg-yellow-900 hover:bg-yellow-800 text-yellow-400 flex items-center justify-center gap-6 disabled:opacity-30 transition-all font-black text-3xl shadow-xl active:translate-y-1"><Icon name="eye" size={32}/> 公布答案</button>
                                         </div>
-                                        <div className="flex gap-16 pt-16">
-                                            <button onClick={() => { sound.playClick(); setSelectedRiddle(null); }} className="flex-1 py-12 rounded-[4.5rem] border-4 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-5xl transition-all">離開題目</button>
-                                            <button onClick={checkAnswer} className="flex-[2] py-12 rounded-[4.5rem] bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-7xl shadow-2xl transition-transform active:scale-95 border-b-[20px] border-yellow-800">
+                                        <div className="flex gap-8 pt-8">
+                                            <button onClick={() => { sound.playClick(); setSelectedRiddle(null); }} className="flex-1 py-8 rounded-[3rem] border-2 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-3xl">離開</button>
+                                            <button onClick={checkAnswer} className="flex-[2] py-8 rounded-[3rem] bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-5xl shadow-2xl active:translate-y-1 border-b-[12px] border-yellow-800 transition-all">
                                                 {showFullAnswer ? (mode === 'group' ? '確認下一組' : '確認下一題') : '確定提交'}
                                             </button>
                                         </div>
