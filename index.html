@@ -28,7 +28,6 @@
         .calligraphy-title {
             text-shadow: 2px 2px 0px rgba(0,0,0,0.5), 0 0 15px rgba(251, 191, 36, 0.4);
             white-space: nowrap;
-            /* 響應式字體大小：確保一行呈現 */
             font-size: clamp(2rem, 11vw, 9rem);
         }
 
@@ -58,7 +57,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 核心 SVG 圖標庫
         const SVGIcons = {
             timer: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
             trophy: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
@@ -109,13 +107,13 @@
 
         const Footer = ({ isSmall = false }) => (
             <div className={`w-full text-center ${isSmall ? 'py-1' : 'py-6'} shrink-0 mt-auto`}>
-                <a href="https://www.facebook.com/mpotkevin" target="_blank" rel="noopener noreferrer" className={`${isSmall ? 'text-xs' : 'text-xl'} text-yellow-500/40 hover:text-yellow-400 font-bold transition-all flex items-center justify-center gap-2`}>
+                <a href="https://www.facebook.com/mpotkevin" target="_blank" rel="noopener noreferrer" className={`${isSmall ? 'text-sm' : 'text-xl'} text-yellow-500/40 hover:text-yellow-400 font-bold transition-all flex items-center justify-center gap-2`}>
                     <span>設計：職能治療師 - 鄭凱文</span>
                 </a>
             </div>
         );
 
-        // 100 題不重複完整題庫 (台灣地名 + 生活知識)
+        // 完整 100 題不重複完整題庫
         const RIDDLES_DATA = [
             { id: '1', category: "食物", question: "小白雞，穿白袍，跳進水裡洗個澡，浮上來，變胖了。", answer: "元宵" },
             { id: '2', category: "動物", question: "八隻腳，抬面鼓，兩把剪刀鼓前舞。", answer: "螃蟹" },
@@ -134,13 +132,13 @@
             { id: '15', category: "腦筋急轉彎", question: "什麼魚不能吃？", answer: "木魚" },
             { id: '16', category: "成語", question: "一加一（打一成語）。", answer: "接二連三" },
             { id: '17', category: "動物", question: "白天草裡住，晚上空中飛，金光閃閃動。", answer: "螢火蟲" },
-            { id: '18', category: "植物", question: "一個老頭子，頭上長鬍子，脫下綠袍子，滿身金珠子。", answer: "玉米" },
+            { id: '18', category: "植物", question: "一個老頭子，頭上長鬍子，滿身金珠子。", answer: "玉米" },
             { id: '19', category: "物品", question: "一塊木板四條腿，雖然有腿不會走。", answer: "桌子" },
             { id: '20', category: "字謎", question: "一口咬掉牛尾巴。", answer: "告" },
             { id: '21', category: "台灣地名", question: "雨港（打一地名）。", answer: "基隆" },
             { id: '22', category: "食物", question: "身穿綠衣裳，肚裡紅瓤子，生下黑種子。", answer: "西瓜" },
             { id: '23', category: "動物", question: "頭戴紅帽子，身穿白袍子，走路擺架子。", answer: "鵝" },
-            { id: '24', category: "物品", question: "有面無口，聽它講話，沒有舌頭。", answer: "收音機" },
+            { id: '24', category: "物品", question: "有面無口，有腳無手，聽它講話，沒有舌頭。", answer: "收音機" },
             { id: '25', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
             { id: '26', category: "字謎", question: "上邊在水裡，下邊在火裡。", answer: "燙" },
             { id: '27', category: "腦筋急轉彎", question: "什麼牛不會吃草？", answer: "蝸牛" },
@@ -153,7 +151,7 @@
             { id: '34', category: "腦筋急轉彎", question: "最長的是什麼路？", answer: "套路" },
             { id: '35', category: "物品", question: "埋在罐裡，活在杯裡，死在鍋裡。", answer: "茶葉" },
             { id: '36', category: "自然", question: "彩色橋，跨藍天，太陽出來它消失。", answer: "彩虹" },
-            { id: '37', category: "動物", question: "尖尖牙齒長長尾，天生怕貓不敢見。", answer: "老鼠" },
+            { id: '37', category: "動物", question: "尖尖牙齒長長尾，愛在洞裡捉迷藏。", answer: "老鼠" },
             { id: '38', category: "食物", question: "青皮包白瓤，外型像條槓。", answer: "絲瓜" },
             { id: '39', category: "字謎", question: "左邊綠，右邊紅，起涼風。", answer: "秋" },
             { id: '40', category: "物品", question: "酸甜苦辣她先嚐，兩姊妹，一樣長。", answer: "筷子" },
@@ -189,7 +187,7 @@
             { id: '70', category: "台灣地名", question: "龍的潭水（打一地名）。", answer: "龍潭" },
             { id: '71', category: "食物", question: "紅紅小臉麻子多，咬它一口酸又甜。", answer: "草莓" },
             { id: '72', category: "食物", question: "穿著紫紅袍，身體圓又小。", answer: "葡萄" },
-            { id: '73', category: "食物", question: "金枕頭，銀枕頭，肉黃油。", answer: "榴槤" },
+            { id: '73', category: "食物", question: "金枕頭，銀枕頭，剝開皮，肉黃油。", answer: "榴槤" },
             { id: '74', category: "食物", question: "黃澄澄的皮，酸溜溜的汁。", answer: "檸檬" },
             { id: '75', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿。", answer: "豆腐" },
             { id: '76', category: "食物", question: "麻屋子，紅帳子，裡面白胖子。", answer: "花生" },
@@ -237,8 +235,8 @@
 
             const [riddlePool, setRiddlePool] = useState(RIDDLES_DATA);
             const [selectedPoolIds, setSelectedPoolIds] = useState(new Set(RIDDLES_DATA.map(r => r.id)));
-            const [newRiddle, setNewRiddle] = useState({ category: '自訂', question: '', answer: '' });
             const [draggedIdx, setDraggedIdx] = useState(null);
+            const [newRiddle, setNewRiddle] = useState({ category: '自訂', question: '', answer: '' });
 
             const sound = useSoundEffect();
 
@@ -288,7 +286,11 @@
                 if (userInput.trim() === selectedRiddle.answer || showFullAnswer) {
                     setFeedback('correct');
                     sound.playCorrect();
-                    setCompleted(prev => new Set(prev).add(selectedRiddle.actualIndex));
+                    setCompleted(prev => {
+                        const next = new Set(prev);
+                        next.add(selectedRiddle.actualIndex);
+                        return next;
+                    });
                     setScores(prev => ({ ...prev, [activeTeamIdx]: (prev[activeTeamIdx] || 0) + (showFullAnswer ? 0 : 1) }));
                     setTimeout(() => {
                         setSelectedRiddle(null);
@@ -335,7 +337,7 @@
 
             const Lantern = ({ number, category, isDone, onClick }) => (
                 <div onClick={onClick} className={`relative cursor-pointer transition-all duration-300 group flex flex-col items-center ${isDone ? 'opacity-50' : 'hover:scale-105 active:scale-95'}`}>
-                    <div className={`mb-1 px-5 py-1 rounded-full text-lg font-black border transition-all shadow-sm ${isDone ? 'bg-gray-800 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
+                    <div className={`mb-1 px-5 py-1 rounded-full text-xl font-black border transition-all shadow-sm ${isDone ? 'bg-gray-800 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
                         {category}
                     </div>
                     <div className="relative shrink-0">
@@ -369,7 +371,7 @@
                                 <h1 className="calligraphy-title font-black leading-none bg-clip-text text-transparent bg-gradient-to-b from-yellow-50 via-yellow-500 to-yellow-900 uppercase">
                                     元宵猜燈謎
                                 </h1>
-                                <p className="mt-8 text-yellow-200/70 text-2xl md:text-3xl font-serif italic tracking-[0.4em]">
+                                <p className="mt-8 text-yellow-200/70 text-2xl md:text-3xl font-serif italic tracking-[0.4em] drop-shadow-sm">
                                     舊時燈謎新玩法，健腦暖心慶元宵
                                 </p>
                             </div>
@@ -391,10 +393,10 @@
                     {/* 分組數量選擇 */}
                     {view === 'teamSelect' && (
                         <div className="full-viewport-center mx-auto px-4 w-full">
-                            <h2 className="text-6xl font-serif font-black text-yellow-500 mb-12 drop-shadow-md tracking-widest text-center">請選擇競賽組數</h2>
+                            <h2 className="text-6xl font-serif font-black text-yellow-50 mb-8 drop-shadow-md tracking-widest text-center">請選擇競賽組數</h2>
                             <div className="grid grid-cols-3 gap-8 p-4 max-w-3xl w-full">
                                 {[2, 3, 4].map(num => (
-                                    <button key={num} onClick={() => { sound.playClick(); startNewGame('group', num); }} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[3rem] py-16 transition-all transform hover:scale-105 flex flex-col items-center shadow-2xl group">
+                                    <button key={num} onClick={() => { sound.playClick(); startNewGame('group', num); }} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[3rem] py-12 transition-all transform hover:scale-105 flex flex-col items-center shadow-2xl group">
                                         <span className="text-8xl font-black text-yellow-400 group-hover:text-yellow-200 transition-colors">{num}</span>
                                         <span className="text-xl font-bold mt-4 opacity-80 tracking-widest font-serif uppercase">組隊競賽</span>
                                     </button>
@@ -432,7 +434,7 @@
                                 <button onClick={() => { sound.playClick(); setView('menu'); }} className="p-2 hover:bg-white/10 rounded-full text-yellow-500 transition-all"><Icon name="refresh" size={28} /></button>
                             </div>
 
-                            <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
+                            <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
                                 <div className="flex items-center justify-center gap-10 mb-4 shrink-0 mt-2">
                                     <button onClick={() => changePage(-1)} className={`p-2 rounded-full border-2 border-yellow-600/30 transition-all hover:bg-yellow-600/10 ${currentRiddlePage === 0 ? 'opacity-10 pointer-events-none' : 'bg-red-900/50'}`}>
                                         <Icon name="arrowLeft" size={32} className="text-yellow-500" />
@@ -456,68 +458,50 @@
                         </div>
                     )}
 
-                    {/* 總結算 */}
-                    {view === 'result' && (
-                        <div className="flex flex-col justify-center items-center h-full w-full space-y-8 px-4">
-                            <div className="text-[10rem]">🎇</div>
-                            <h2 className="text-7xl font-black text-yellow-500 drop-shadow-2xl">燈謎大會圓滿結束</h2>
-                            <div className="bg-red-900/50 p-12 rounded-[4rem] border-2 border-yellow-600/30 min-w-[500px] text-center shadow-xl">
-                                <p className="text-5xl mb-8 font-black font-serif">總耗時：<span className="text-yellow-400 font-mono">{formatTime(timer)}</span></p>
-                                {mode === 'group' && (
-                                    <div className="space-y-4 pt-4 border-t border-yellow-600/20">
-                                        {[...Array(teamCount)].map((_, i) => (
-                                            <div key={i} className={`flex justify-between items-center text-4xl px-12 py-5 rounded-[2rem] ${scores[i] === Math.max(...Object.values(scores)) ? 'bg-yellow-600/30 border-2 border-yellow-500 shadow-xl' : 'bg-black/60'}`}>
-                                                <span className="font-serif font-bold">第 {i + 1} 組</span>
-                                                <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <button onClick={() => { sound.playClick(); setView('menu'); }} className="bg-yellow-600 text-red-950 px-24 py-8 rounded-[4rem] text-5xl font-black shadow-xl border-b-[10px] border-yellow-800 active:translate-y-2 transition-all">回主畫面</button>
-                            <Footer isSmall />
-                        </div>
-                    )}
-
-                    {/* 設定頁面 */}
+                    {/* 設定頁面 - 對齊優化 */}
                     {view === 'settings' && (
-                        <div className="h-full w-full flex flex-col bg-red-950 animate-in fade-in duration-300">
+                        <div className="h-screen w-screen flex flex-col bg-red-950 animate-in fade-in duration-300 overflow-hidden">
                             <div className="p-6 border-b-2 border-yellow-600/30 flex justify-between items-center bg-red-800 shrink-0">
-                                <div>
+                                <div className="flex flex-col">
                                     <h2 className="text-4xl font-black text-yellow-500 flex items-center gap-6 font-serif tracking-widest uppercase"><Icon name="settings" size={48}/> 題庫管理中心</h2>
-                                    <p className="text-yellow-200/50 text-xl font-serif mt-1 italic">點擊選取題目，拖曳方塊變更排序 (共 {riddlePool.length} 題)</p>
+                                    <p className="text-yellow-200/50 text-xl font-serif mt-1 italic">選取題目或拖曳變更順序 (共 {riddlePool.length} 題)</p>
                                 </div>
                                 <button onClick={() => { sound.playClick(); setView('menu'); }} className="bg-yellow-600 text-red-950 px-10 py-4 rounded-2xl text-2xl font-black shadow-md hover:bg-yellow-500 transition-all flex items-center gap-3">確認並返回遊戲</button>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-red-950 min-h-0">
-                                <div className="bg-red-900/60 p-6 rounded-3xl border border-yellow-600/20 max-w-6xl mx-auto w-full shadow-inner shrink-0">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                        <input type="text" placeholder="種類" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="bg-red-950 border border-yellow-600/30 rounded-xl px-6 py-3 text-2xl outline-none focus:border-yellow-400 text-white" />
-                                        <input type="text" placeholder="謎題內容" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="bg-red-950 border border-yellow-600/30 rounded-xl px-6 py-3 text-2xl outline-none focus:border-yellow-400 text-white md:col-span-2" />
-                                        <div className="flex gap-4">
-                                            <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="flex-1 bg-red-950 border border-yellow-600/30 rounded-xl px-6 py-3 text-2xl outline-none focus:border-yellow-400 text-white" />
-                                            <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-8 rounded-xl font-black hover:bg-yellow-500 shadow-md text-xl">新增</button>
+                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-red-950 min-h-0">
+                                <div className="max-w-6xl mx-auto w-full space-y-6 pb-20">
+                                    {/* 快速新增區：調整樣式與寬度一致 */}
+                                    <div className="bg-red-900/60 p-4 rounded-2xl border-2 border-yellow-600/20 shadow-inner shrink-0 mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Icon name="plus" size={24} className="text-yellow-400"/>
+                                                <span className="text-xl font-black text-yellow-400 whitespace-nowrap">新增題目</span>
+                                            </div>
+                                            <input type="text" placeholder="種類" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="w-32 bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-xl outline-none focus:border-yellow-400 text-white shrink-0" />
+                                            <input type="text" placeholder="謎題內容" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="flex-1 bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-xl outline-none focus:border-yellow-400 text-white" />
+                                            <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="w-48 bg-red-950 border border-yellow-600/30 rounded-xl px-4 py-2 text-xl outline-none focus:border-yellow-400 text-white shrink-0" />
+                                            <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-8 py-2 rounded-xl font-black hover:bg-yellow-500 shadow-md text-xl shrink-0 transition-all">新增</button>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="max-w-6xl mx-auto w-full space-y-6 pb-20">
+
                                     <div className="flex justify-between items-center px-4">
-                                        <h3 className="text-3xl font-black text-yellow-500 tracking-widest font-serif uppercase">所有題目</h3>
+                                        <h3 className="text-3xl font-black text-yellow-500 tracking-widest font-serif uppercase">正式題庫清單</h3>
                                         <div className="flex gap-10 text-xl font-bold text-yellow-500/60 underline underline-offset-4 font-serif">
                                             <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set(riddlePool.map(r => r.id))); }}>全選題目</button>
                                             <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set()); }}>清空選取</button>
                                         </div>
                                     </div>
+
                                     <div className="grid gap-2">
                                         {riddlePool.map((r, idx) => (
                                             <div key={r.id} draggable onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
                                                 className={`bg-red-900/40 p-3 rounded-2xl border border-yellow-600/10 flex items-center justify-between group cursor-grab active:cursor-grabbing hover:bg-red-900 transition-all ${draggedIdx === idx ? 'opacity-20 shadow-none' : 'shadow-md'}`} >
                                                 <div className="flex items-center gap-5 flex-1 text-white overflow-hidden">
                                                     <Icon name="grip" size={20} className="text-yellow-600/20" />
-                                                    <div className="text-2xl font-black text-yellow-500/60 w-10 text-center">#{idx + 1}</div>
-                                                    <button onClick={() => { sound.playClick(); const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950 shadow-inner' : 'border-yellow-600/20 text-transparent'}`} ><Icon name="check" size={20} /></button>
+                                                    <div className="text-2xl font-black text-yellow-500/60 w-10">#{idx + 1}</div>
+                                                    <button onClick={() => { sound.playClick(); const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950 shadow-inner' : 'border-yellow-600/20 text-transparent'}`} ><Icon name="check" size={20} /></button>
                                                     <div className="flex flex-col ml-4">
-                                                        <span className="text-xs text-yellow-500/40 font-black uppercase tracking-widest">{r.category}</span>
+                                                        <span className="text-xs text-yellow-500/40 font-black tracking-widest uppercase">{r.category}</span>
                                                         <span className="text-2xl font-medium line-clamp-1 opacity-95">{r.question}</span>
                                                     </div>
                                                 </div>
@@ -534,10 +518,10 @@
                         </div>
                     )}
 
-                    {/* 答題視窗 - 精確佈局，無重疊，全螢幕適應 */}
+                    {/* 答題視窗 - 精確排版，四鍵併排 */}
                     {selectedRiddle && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in">
-                            <div className="bg-red-800 border-[8px] border-yellow-500 rounded-[5rem] max-w-5xl w-full h-[95vh] shadow-2xl relative flex flex-col items-center justify-between p-10 md:p-14">
+                            <div className="bg-red-800 border-[8px] border-yellow-500 rounded-[5rem] max-w-5xl w-full h-[95vh] shadow-2xl relative flex flex-col items-center p-8 md:p-10 space-y-4">
                                 
                                 {mode === 'group' && (
                                     <div className="absolute top-6 left-10 pointer-events-none z-50">
@@ -547,43 +531,47 @@
                                     </div>
                                 )}
 
-                                <div className="inline-block px-12 py-3 bg-yellow-600 text-red-950 rounded-full text-3xl font-serif font-black shadow-lg border-b-6 border-yellow-800 shrink-0">
+                                {/* 類別標籤 */}
+                                <div className="inline-block px-12 py-3 bg-yellow-600 text-red-950 rounded-full text-2xl font-serif font-black shadow-lg border-b-6 border-yellow-800 shrink-0">
                                     {selectedRiddle.category} 謎題
                                 </div>
 
-                                <div className="flex-1 w-full flex flex-col items-center justify-center min-h-0 space-y-8 py-6">
-                                    <h3 className="font-serif font-black leading-tight text-yellow-50 drop-shadow-lg text-center max-w-5xl"
-                                        style={{ fontSize: 'clamp(1.8rem, 4.5vh, 4rem)' }}>
+                                {/* 謎題區：置於類別之下，動態縮放 */}
+                                <div className="flex-1 w-full flex flex-col items-center justify-center min-h-0 space-y-6 md:space-y-8 overflow-hidden">
+                                    <h3 className="font-serif font-black leading-tight text-yellow-50 drop-shadow-lg text-center max-w-4xl"
+                                        style={{ fontSize: 'clamp(1.6rem, 4vh, 3.8rem)' }}>
                                         {selectedRiddle.question}
                                     </h3>
 
+                                    {/* 答案格子 */}
                                     <div className="flex justify-center gap-4 flex-wrap shrink-0">
                                         {[...selectedRiddle.answer].map((char, i) => (
-                                            <div key={i} className={`w-16 h-16 md:w-24 md:h-24 border-2 rounded-[1.5rem] flex items-center justify-center text-4xl md:text-6xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 shadow-xl' : 'bg-red-950/50 border-yellow-600/30 text-transparent'}`}>
+                                            <div key={i} className={`w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 border-2 rounded-[1.5rem] flex items-center justify-center text-4xl sm:text-5xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 shadow-xl' : 'bg-red-950/50 border-yellow-600/30 text-transparent'}`}>
                                                 {(i < hintLevel || showFullAnswer) ? char : '?'}
                                             </div>
                                         ))}
                                     </div>
 
-                                    <div className="w-full max-w-4xl space-y-6 shrink-0">
+                                    {/* 輸入區與按鈕區：合併優化 */}
+                                    <div className="w-full max-w-4xl flex flex-col space-y-4 shrink-0">
                                         {!showFullAnswer && (
                                             <input autoFocus type="text" placeholder="在此輸入謎底..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
-                                                className={`w-full bg-red-950 border-4 border-yellow-600/40 rounded-[2.5rem] px-12 py-6 text-4xl text-center outline-none focus:border-yellow-400 text-white shadow-inner shrink-0`} />
+                                                className={`w-full bg-red-950 border-4 border-yellow-600/40 rounded-[2.5rem] px-8 py-3 sm:py-4 text-3xl sm:text-4xl text-center outline-none focus:border-yellow-400 text-white shadow-inner shrink-0`} />
                                         )}
                                         
-                                        <div className="grid grid-cols-2 gap-6 shrink-0">
-                                            <button onClick={() => { if(hintLevel < selectedRiddle.answer.length) { sound.playClick(); setHintLevel(h => h+1); } }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="py-4 rounded-[2.5rem] bg-orange-700 hover:bg-orange-600 text-yellow-100 font-black text-2xl shadow-xl active:translate-y-1 flex items-center justify-center gap-4 transition-all">
-                                                <Icon name="bulb" size={32}/> 提示一字
+                                        {/* 四鍵併排：節省高度空間 */}
+                                        <div className="grid grid-cols-4 gap-3 sm:gap-4 shrink-0 h-16 sm:h-20">
+                                            <button onClick={() => { if(hintLevel < selectedRiddle.answer.length) { sound.playClick(); setHintLevel(h => h+1); } }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="rounded-2xl bg-orange-700 hover:bg-orange-600 text-yellow-100 font-black text-lg sm:text-xl shadow-xl active:translate-y-1 flex items-center justify-center gap-2 transition-all border border-orange-500/20">
+                                                <Icon name="bulb" size={20}/> 提示
                                             </button>
-                                            <button onClick={() => { sound.playClick(); setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="py-4 rounded-[2.5rem] bg-yellow-900 hover:bg-yellow-800 text-yellow-400 font-black text-2xl shadow-xl active:translate-y-1 flex items-center justify-center gap-4 transition-all">
-                                                <Icon name="eye" size={32}/> 直接公布
+                                            <button onClick={() => { sound.playClick(); setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="rounded-2xl bg-yellow-900 hover:bg-yellow-800 text-yellow-400 font-black text-lg sm:text-xl shadow-xl active:translate-y-1 flex items-center justify-center gap-2 transition-all border border-yellow-700/20">
+                                                <Icon name="eye" size={20}/> 公布
                                             </button>
-                                        </div>
-
-                                        <div className="flex gap-6 shrink-0 pt-4 border-t-2 border-yellow-600/10">
-                                            <button onClick={() => { sound.playClick(); setSelectedRiddle(null); }} className="flex-1 py-4 rounded-[2.5rem] border-4 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-2xl transition-all">離開</button>
-                                            <button onClick={checkAnswer} className="flex-[2] py-4 rounded-[2.5rem] bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-5xl shadow-2xl active:translate-y-1 border-b-[12px] border-yellow-800 transition-all">
-                                                {showFullAnswer ? (mode === 'group' ? '確認下一組' : '確認下一題') : '確定提交答案'}
+                                            <button onClick={() => { sound.playClick(); setSelectedRiddle(null); }} className="rounded-2xl border-2 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-lg sm:text-xl flex items-center justify-center">
+                                                離開
+                                            </button>
+                                            <button onClick={checkAnswer} className="rounded-2xl bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-xl sm:text-2xl shadow-2xl active:translate-y-1 border-b-6 border-yellow-800 transition-all flex items-center justify-center">
+                                                {showFullAnswer ? '下一題' : '提交'}
                                             </button>
                                         </div>
                                     </div>
