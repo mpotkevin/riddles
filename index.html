@@ -1,608 +1,646 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Timer, Trophy, Users, User, RefreshCw, CheckCircle, Lightbulb, Eye, LayoutGrid, MousePointer2, Settings, Plus, Trash2, X, Check, ArrowRight, GripVertical } from 'lucide-react';
-
-// 1. 作者資訊組件
-const Footer = () => (
-  <div className="w-full text-center py-6 mt-auto">
-    <a 
-      href="https://www.facebook.com/mpotkevin" 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="text-yellow-500/60 hover:text-yellow-400 font-bold transition-all text-xl flex items-center justify-center gap-2 group"
-    >
-      <span>設計：職能治療師 - 鄭凱文</span>
-      <span className="opacity-0 group-hover:opacity-100 transition-opacity">🔗</span>
-    </a>
-  </div>
-);
-
-// 2. 初始百題題庫
-const INITIAL_RIDDLES = [
-  { id: '1', category: "食物", question: "小白雞，穿白袍，跳進水裡洗個澡，浮上來，變胖了。", answer: "元宵" },
-  { id: '2', category: "動物", question: "八隻腳，抬面鼓，兩把剪刀鼓前舞。", answer: "螃蟹" },
-  { id: '3', category: "植物", question: "一個小姑娘，生在水中央，身穿粉紅衫，坐在綠船上。", answer: "荷花" },
-  { id: '4', category: "物品", question: "一隻八寶袋，吊在門外頭，有人進屋去，它就張開口。", answer: "門簾" },
-  { id: '5', category: "字謎", question: "兩人在一起。", answer: "从" },
-  { id: '6', category: "腦筋急轉彎", question: "什麼路不能走？", answer: "網路" },
-  { id: '7', category: "台灣地名", question: "君子之交（打一地名）。", answer: "淡水" },
-  { id: '8', category: "動物", question: "年紀並不大，鬍子一把抓，不論遇到誰，總愛喊媽媽。", answer: "山羊" },
-  { id: '9', category: "食物", question: "紅紅臉蛋長雀斑，入口酸甜味道鮮，珍珠瑪瑙在裡面。", answer: "石榴" },
-  { id: '10', category: "物品", question: "小紅帽，穿紅袍，站在路邊搖搖搖。", answer: "燈籠" },
-  { id: '11', category: "字謎", question: "一隻黑狗，不叫不吼。", answer: "默" },
-  { id: '12', category: "自然", question: "千條線，萬條線，掉在水裡看不見。", answer: "雨" },
-  { id: '13', category: "物品", question: "一對雙胞胎，進出老一塊，專在嘴門口，給人送飯菜。", answer: "筷子" },
-  { id: '14', category: "動物", question: "大姐用嘴紮燈籠，二姐織網捉飛蟲。", answer: "蜘蛛" },
-  { id: '15', category: "腦筋急轉彎", question: "什麼魚不能吃？", answer: "木魚" },
-  { id: '16', category: "成語", question: "一加一（打一成語）。", answer: "接二連三" },
-  { id: '17', category: "動物", question: "白天草裡住，晚上空中飛，金光閃閃動。", answer: "螢火蟲" },
-  { id: '18', category: "植物", question: "一個老頭子，頭上長鬍子，脫下綠袍子，滿身金珠子。", answer: "玉米" },
-  { id: '19', category: "物品", question: "一塊木板四條腿，雖然有腿不會走。", answer: "桌子" },
-  { id: '20', category: "字謎", question: "一口咬掉牛尾巴。", answer: "告" },
-  { id: '21', category: "台灣地名", question: "雨港（打一地名）。", answer: "基隆" },
-  { id: '22', category: "食物", question: "身穿綠衣裳，肚裡紅瓤子，生下黑種子。", answer: "西瓜" },
-  { id: '23', category: "動物", question: "頭戴紅帽子，身穿白袍子，走路擺架子。", answer: "鵝" },
-  { id: '24', category: "物品", question: "有面無口，有腳無手，聽它講話，沒有舌頭。", answer: "收音機" },
-  { id: '25', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
-  { id: '26', category: "字謎", question: "上邊在水裡，下邊在火裡。", answer: "燙" },
-  { id: '27', category: "腦筋急轉彎", question: "什麼牛不會吃草？", answer: "蝸牛" },
-  { id: '28', category: "物品", question: "遠看像面鼓，近看像面鑼，雖然是個寶，可惜沒耳朵。", answer: "碗" },
-  { id: '29', category: "台灣地名", question: "風城（打一地名）。", answer: "新竹" },
-  { id: '30', category: "動物", question: "耳朵長，尾巴短，紅眼睛，白毛衫。", answer: "兔子" },
-  { id: '31', category: "物品", question: "遠看山有色，近聽水無聲。", answer: "畫" },
-  { id: '32', category: "台灣地名", question: "開門見山（打一地名）。", answer: "台東" },
-  { id: '33', category: "字謎", question: "一隻狗四張嘴。", answer: "器" },
-  { id: '34', category: "腦筋急轉彎", question: "世界上最長的是什麼路？", answer: "套路" },
-  { id: '35', category: "物品", question: "生在山裡，死在鍋裡，埋在罐裡，活在杯裡。", answer: "茶葉" },
-  { id: '36', category: "自然", question: "彩色橋，跨藍天，太陽出來它消失。", answer: "彩虹" },
-  { id: '37', category: "動物", question: "尖尖牙齒長長尾，愛在洞裡捉迷藏。", answer: "老鼠" },
-  { id: '38', category: "食物", question: "青皮包白瓤，外型像條槓。", answer: "絲瓜" },
-  { id: '39', category: "字謎", question: "左邊綠，邊紅，左右相遇起涼風。", answer: "秋" },
-  { id: '40', category: "物品", question: "兩姊妹，一樣長，酸甜苦辣她先嚐。", answer: "筷子" },
-  { id: '41', category: "自然", question: "紅公公，早起行，傍晚時分落西山。", answer: "太陽" },
-  { id: '42', category: "台灣地名", question: "懷胎十月（打一地名）。", answer: "土城" },
-  { id: '43', category: "成語", question: "螃蟹走路（打一成語）。", answer: "橫行霸道" },
-  { id: '44', category: "動物", question: "大公雞，生來沒羽毛，昂頭叫一聲，全村都知曉。", answer: "鬧鐘" },
-  { id: '45', category: "食物", question: "金枕頭，銀枕頭，剝開皮，肉黃油。", answer: "榴槤" },
-  { id: '46', category: "台灣地名", question: "空中霸王（打一地名）。", answer: "高雄" },
-  { id: '47', category: "台灣地名", question: "把守第一關（打一地名）。", answer: "頭城" },
-  { id: '48', category: "台灣地名", question: "飲水思源（打一地名）。", answer: "澎湖" },
-  { id: '49', category: "台灣地名", question: "雙喜臨門（打一地名）。", answer: "嘉義" },
-  { id: '50', category: "台灣地名", question: "南天門（打一地名）。", answer: "南投" },
-  { id: '51', category: "自然", question: "亮晶晶，掛天空，像眼睛，眨不停。", answer: "星星" },
-  { id: '52', category: "動物", question: "像龍不是龍，生在深海中，游動快如風。", answer: "魚" },
-  { id: '53', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
-  { id: '54', category: "物品", question: "兩隻小口袋，天天隨身帶，腳丫不痛快。", answer: "襪子" },
-  { id: '55', category: "字謎", question: "十個哥哥。", answer: "克" },
-  { id: "56", category: "台灣地名", question: "熱鬧非凡（打一地名）。", answer: "羅東" },
-  { id: "57", category: "食物", question: "金黃外衣穿身上，身材彎彎像小船。", answer: "香蕉" },
-  { id: "58", category: "成語", question: "打雷不下雨（打一成語）。", answer: "虛張聲勢" },
-  { id: "59", category: "自然", question: "白色羽毛漫天飛，冷風一吹地全白。", answer: "雪" },
-  { id: "60", category: "字謎", question: "守門員。", answer: "閃" },
-  { id: "61", category: "台灣地名", question: "忠孝節義（打一地名）。", answer: "善化" },
-  { id: "62", category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
-  { id: "63", category: "動物", question: "會飛不是鳥，愛在夜裡跑，倒掛睡覺好。", answer: "蝙蝠" },
-  { id: "64", category: "物品", question: "圓圓腦殼長長柄，照它一下臉變美。", answer: "鏡子" },
-  { id: "65", category: "字謎", question: "山上還有山。", answer: "出" },
-  { id: "66", category: "食物", question: "紅紅臉，綠頭髮，埋在土裡不說話。", answer: "紅蘿蔔" },
-  { id: "67", category: "台灣地名", question: "地圖（打一地名）。", answer: "台西" },
-  { id: "68", category: "動物", question: "長長脖子高個頭，愛在樹頂吃綠葉。", answer: "長頸鹿" },
-  { id: "69", category: "物品", question: "一扇門，開又關，冷氣跑不出。", answer: "冰箱" },
-  { id: "70", category: "字謎", question: "一月一日。", answer: "明" },
-  { id: "71", category: "台灣地名", question: "北斗星（打一地名）。", answer: "彰化" },
-  { id: "72", category: "腦筋急轉彎", question: "什麼雞沒有翅膀？", answer: "田雞" },
-  { id: "73", category: "自然", question: "來無影，去無踪，能吹動樹葉。", answer: "風" },
-  { id: "74", category: "成語", question: "舉手投降（打一成語）。", answer: "不戰而降" },
-  { id: "75", category: "物品", question: "有風它不動，一動就有風。", answer: "扇子" },
-  { id: "76", category: "字謎", question: "一家十一口。", answer: "吉" },
-  { id: "77", category: "食物", question: "麻屋子，紅帳子，裡面住個白胖子。", answer: "花生" },
-  { id: "78", category: "台灣地名", question: "被子太短（打一地名）。", answer: "鹿谷" },
-  { id: "79", category: "動物", question: "小小游泳家，嘴裡吐泡泡。", answer: "金魚" },
-  { id: '80', category: "字謎", question: "有人有他。", answer: "他" },
-  { id: '81', category: "自然", question: "有時圓圓像個盤，有時彎彎像條船。", answer: "月亮" },
-  { id: '82', category: "物品", question: "一根棍子長又長，頭上開花亮堂堂。", answer: "手電筒" },
-  { id: '83', category: "台灣地名", question: "雙倍利息（打一地名）。", answer: "加祿" },
-  { id: '84', category: "字謎", question: "一月七日。", answer: "脂" },
-  { id: '85', category: "食物", question: "青皮包紅心，黑籽裡面藏。", answer: "西瓜" },
-  { id: '86', category: "動物", question: "大嘴巴，綠衣裳，歌唱家。", answer: "青蛙" },
-  { id: '87', category: "成語", question: "三加四（打一成語）。", answer: "不三不四" },
-  { id: '88', category: "物品", question: "四角方方，薄薄一張，寫字畫畫全靠它。", answer: "紙" },
-  { id: '89', category: "台灣地名", question: "森林之王（打一地名）。", answer: "獅潭" },
-  { id: '90', category: "字謎", question: "有人在心上。", answer: "您" },
-  { id: '91', category: "食物", question: "紅紅罈子，裝滿紅餃子，吐出白珠子。", answer: "橘子" },
-  { id: '92', category: "動物", question: "大姐紮燈籠，二姐織網捉飛蟲。", answer: "蜘蛛" },
-  { id: '93', category: "成語", question: "愚公移山（打一成語）。", answer: "開門見山" },
-  { id: '94', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
-  { id: '95', category: "物品", question: "兩隻小口袋，天天隨身帶。", answer: "襪子" },
-  { id: '96', category: "台灣地名", question: "海中綠洲（打一地名）。", answer: "澎湖" },
-  { id: '97', category: "字謎", question: "十個哥哥。", answer: "克" },
-  { id: '98', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
-  { id: '99', category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
-  { id: '100', category: "台灣地名", question: "長生不老（打一地名）。", answer: "恆春" }
-];
-
-const App = () => {
-  const [view, setView] = useState('menu'); 
-  const [mode, setMode] = useState('single'); 
-  const [teamCount, setTeamCount] = useState(2);
-  const [round, setRound] = useState(0); 
-  const [gameRiddles, setGameRiddles] = useState([]); 
-  const [completed, setCompleted] = useState(new Set());
-  const [scores, setScores] = useState({});
-  const [activeTeamIdx, setActiveTeamIdx] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [selectedRiddle, setSelectedRiddle] = useState(null);
-  const [userInput, setUserInput] = useState('');
-  const [feedback, setFeedback] = useState(null); 
-  const [hintLevel, setHintLevel] = useState(0);
-  const [showFullAnswer, setShowFullAnswer] = useState(false);
-
-  // 設定與題庫狀態
-  const [riddlePool, setRiddlePool] = useState(INITIAL_RIDDLES);
-  const [selectedPoolIds, setSelectedPoolIds] = useState(new Set(INITIAL_RIDDLES.map(r => r.id)));
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [newRiddle, setNewRiddle] = useState({ category: '自訂', question: '', answer: '' });
-  const [draggedIdx, setDraggedIdx] = useState(null);
-
-  useEffect(() => {
-    let interval;
-    if (view === 'game') {
-      interval = setInterval(() => setTimer(prev => prev + 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [view]);
-
-  const handleModeClick = (m) => {
-    setMode(m);
-    if (m === 'group') setView('teamSelect');
-    else startNewGame(m, 1);
-  };
-
-  const startNewGame = (m, tc) => {
-    const initialScores = {};
-    for (let i = 0; i < tc; i++) initialScores[i] = 0;
-    setScores(initialScores);
-    setTeamCount(tc);
-    setRound(0);
-    setCompleted(new Set());
-    setTimer(0);
-    setActiveTeamIdx(0);
-    const availablePool = riddlePool.filter(r => selectedPoolIds.has(r.id));
-    setGameRiddles(availablePool);
-    setView('game');
-  };
-
-  const handleNextRound = () => {
-    if ((round + 1) * 20 >= gameRiddles.length) setView('result');
-    else {
-      setRound(prev => prev + 1);
-      setCompleted(new Set());
-      setView('game');
-    }
-  };
-
-  const currentRoundRiddles = gameRiddles.slice(round * 20, (round + 1) * 20);
-
-  const handleRiddleClick = (index) => {
-    if (completed.has(index)) return;
-    setSelectedRiddle({ ...currentRoundRiddles[index], index });
-    setUserInput('');
-    setFeedback(null);
-    setHintLevel(0);
-    setShowFullAnswer(false);
-  };
-
-  const checkAnswer = () => {
-    if (userInput.trim() === selectedRiddle.answer || showFullAnswer) {
-      setFeedback('correct');
-      setCompleted(prev => new Set(prev).add(selectedRiddle.index));
-      setScores(prev => ({ ...prev, [activeTeamIdx]: prev[activeTeamIdx] + (showFullAnswer ? 0 : 1) }));
-      setTimeout(() => {
-        setSelectedRiddle(null);
-        if (mode === 'group') setActiveTeamIdx((activeTeamIdx + 1) % teamCount);
-        if (completed.size + 1 === Math.min(20, currentRoundRiddles.length)) setView('roundSummary');
-      }, 1200);
-    } else {
-      setFeedback('wrong');
-      setTimeout(() => setFeedback(null), 1000);
-    }
-  };
-
-  const handleDragStart = (idx) => setDraggedIdx(idx);
-  const handleDragOver = (e) => e.preventDefault();
-  const handleDrop = (idx) => {
-    if (draggedIdx === null || draggedIdx === idx) return;
-    const newPool = [...riddlePool];
-    const draggedItem = newPool[draggedIdx];
-    newPool.splice(draggedIdx, 1);
-    newPool.splice(idx, 0, draggedItem);
-    setRiddlePool(newPool);
-    setDraggedIdx(null);
-  };
-
-  const addNewRiddle = () => {
-    if (!newRiddle.question || !newRiddle.answer) return;
-    const id = Date.now().toString();
-    setRiddlePool(prev => [{ ...newRiddle, id }, ...prev]);
-    setSelectedPoolIds(prev => new Set(prev).add(id));
-    setNewRiddle({ category: '自訂', question: '', answer: '' });
-  };
-
-  const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-
-  // 質感燈籠組件
-  const Lantern = ({ number, category, isDone, onClick }) => (
-    <div 
-      onClick={onClick}
-      className={`relative cursor-pointer transition-all duration-500 group flex flex-col items-center ${isDone ? 'opacity-40 grayscale-[0.5]' : 'hover:scale-110 active:scale-95'}`}
-    >
-      {/* 類別標籤 */}
-      <div className={`mb-3 px-4 py-1 rounded-full text-sm font-black border transition-all shadow-sm ${isDone ? 'bg-gray-700 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
-        {category}
-      </div>
-
-      {/* 燈籠本體 */}
-      <div className="relative">
-        {/* 提手繩 */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-yellow-600/50" />
-        
-        {/* 燈籠外型 */}
-        <div className={`w-24 h-28 rounded-[2.5rem] relative flex items-center justify-center border-2 overflow-hidden transition-all shadow-[0_8px_20px_rgba(0,0,0,0.4)] ${isDone ? 'bg-gray-800 border-gray-600' : 'bg-gradient-to-b from-red-500 via-red-600 to-red-800 border-yellow-500/40'}`}>
-          
-          {/* 紙質紋理與內光效果 */}
-          {!isDone && (
-            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,rgba(253,224,71,0.5)_0%,transparent_70%)]" />
-          )}
-          
-          {/* 燈籠支架線條 */}
-          <div className="absolute inset-0 flex justify-around px-4 pointer-events-none opacity-20">
-            <div className="w-px h-full bg-black/40" />
-            <div className="w-px h-full bg-black/40" />
-          </div>
-
-          {/* 序號 */}
-          <span className={`text-white font-serif font-black text-5xl z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`}>
-            {number}
-          </span>
-          
-          {/* 上下箍環 */}
-          <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-yellow-700 via-yellow-400 to-yellow-700" />
-          <div className="absolute bottom-0 w-full h-2 bg-gradient-to-r from-yellow-700 via-yellow-400 to-yellow-700" />
-        </div>
-
-        {/* 底部流蘇裝飾 */}
-        <div className="flex flex-col items-center mt-[-2px]">
-          <div className="w-6 h-1 bg-yellow-600 rounded-sm" />
-          <div className="w-0.5 h-3 bg-red-700" />
-          <div className="flex gap-0.5">
-            <div className="w-1 h-8 bg-red-600 rounded-full animate-pulse origin-top" style={{ animationDelay: `${number * 0.1}s` }} />
-            <div className="w-1 h-10 bg-red-700 rounded-full animate-pulse origin-top" style={{ animationDelay: `${number * 0.2}s` }} />
-            <div className="w-1 h-8 bg-red-600 rounded-full animate-pulse origin-top" style={{ animationDelay: `${number * 0.15}s` }} />
-          </div>
-        </div>
-
-        {/* 完成打勾 */}
-        {isDone && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-            <CheckCircle className="text-green-400 fill-green-950 w-14 h-14 shadow-2xl" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-red-950 text-yellow-100 font-sans selection:bg-yellow-500 selection:text-red-950 overflow-hidden relative flex flex-col">
-      {/* 背景裝飾 */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className="absolute border-2 border-yellow-500 rounded-full w-96 h-48" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, transform: `rotate(${Math.random() * 360}deg)` }} />
-        ))}
-      </div>
-
-      {/* 導航欄 */}
-      {(view === 'game' || view === 'roundSummary') && (
-        <div className="bg-red-900/90 backdrop-blur-md border-b-2 border-yellow-600 p-4 sticky top-0 z-40 shadow-2xl flex flex-wrap justify-between items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
-              <Timer className="w-5 h-5 text-yellow-400" />
-              <span className="font-mono text-xl">{formatTime(timer)}</span>
-            </div>
-            <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              <span className="text-xl font-bold">{completed.size} / {Math.min(20, currentRoundRiddles.length)}</span>
-            </div>
-          </div>
-          {mode === 'group' && (
-            <div className="flex items-center justify-center gap-2 flex-grow max-w-2xl px-4">
-              {[...Array(teamCount)].map((_, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => setActiveTeamIdx(i)}
-                  className={`flex-1 min-w-0 max-w-[150px] px-2 py-2 rounded-2xl border-2 transition-all flex flex-col items-center group relative ${activeTeamIdx === i ? 'bg-yellow-600 text-red-950 border-yellow-300 shadow-[0_0_20px_rgba(234,179,8,0.5)] scale-105' : 'bg-red-800 border-red-700 text-yellow-600 hover:border-yellow-900'}`}
-                >
-                  <span className="text-[10px] uppercase font-black opacity-80 truncate w-full text-center">Team {i + 1}</span>
-                  <span className="text-2xl font-black">{(scores[i] || 0).toString()}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <button onClick={() => setView('menu')} className="p-3 hover:bg-white/10 rounded-full transition-all text-yellow-500"><RefreshCw size={24}/></button>
-          </div>
-        </div>
-      )}
-
-      <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
-        {/* 初始選單 */}
-        {view === 'menu' && (
-          <div className="max-w-4xl w-full text-center space-y-16 animate-in fade-in zoom-in duration-700">
-            <div className="relative inline-block mb-4 group">
-              <div className="relative">
-                <h1 className="text-9xl md:text-[11.5rem] font-serif font-black tracking-widest leading-tight drop-shadow-[0_10px_20px_rgba(0,0,0,0.7)] bg-clip-text text-transparent bg-gradient-to-b from-yellow-50 via-yellow-500 to-yellow-900"
-                    style={{ 
-                      textShadow: '1px 1px 0px rgba(0,0,0,0.4), 0 0 4px rgba(255,255,255,0.1)',
-                      fontFamily: '"Noto Serif TC", "Songti TC", "Songti SC", serif'
-                    }}>
-                  元宵猜燈謎
-                </h1>
-                <div className="absolute -inset-x-12 -bottom-2 h-[4px] bg-gradient-to-r from-transparent via-yellow-700/60 to-transparent" />
-              </div>
-              <p className="mt-12 text-yellow-200/80 text-3xl font-serif italic tracking-[0.5em] drop-shadow-sm opacity-90">
-                舊時燈謎新玩法，健腦暖心慶元宵
-              </p>
-            </div>
-            
-            <div className="space-y-8 flex flex-col items-center w-full pt-10">
-              <button onClick={() => handleModeClick('single')} className="w-full max-w-md bg-red-700 hover:bg-red-600 text-yellow-100 py-8 rounded-[3rem] text-3xl font-black border-b-[12px] border-red-950 transition-all flex items-center justify-center gap-4 active:translate-y-2 active:border-b-[4px] shadow-2xl">
-                <User size={36}/> 個人模式挑戰
-              </button>
-              <button onClick={() => handleModeClick('group')} className="w-full max-w-md bg-yellow-600 hover:bg-yellow-500 text-red-950 py-8 rounded-[3rem] text-3xl font-black border-b-[12px] border-yellow-800 transition-all flex items-center justify-center gap-4 active:translate-y-2 active:border-b-[4px] shadow-2xl">
-                <Users size={36}/> 分組趣味競賽
-              </button>
-            </div>
-            
-            {/* 設定按鈕 */}
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="fixed bottom-10 right-10 bg-red-900/90 backdrop-blur-md p-7 rounded-full border-2 border-yellow-600 shadow-[0_0_30px_rgba(0,0,0,0.4)] hover:bg-red-800 hover:scale-110 transition-all text-yellow-500 z-30 group"
-            >
-              <Settings size={44} className="group-hover:rotate-180 transition-transform duration-1000" />
-            </button>
-
-            <Footer />
-          </div>
-        )}
-
-        {/* 隊伍選擇畫面 */}
-        {view === 'teamSelect' && (
-          <div className="max-w-5xl w-full text-center space-y-10 animate-in fade-in slide-in-from-bottom duration-500">
-            <h2 className="text-8xl font-serif font-black text-yellow-500 mb-20 drop-shadow-lg">請選擇競賽組數</h2>
-            <div className="grid grid-cols-3 gap-12 p-4">
-              {[2, 3, 4].map(num => (
-                <button key={num} onClick={() => startNewGame('group', num)} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[4rem] py-24 transition-all transform hover:scale-105 flex flex-col items-center group shadow-2xl">
-                  <span className="text-9xl md:text-[11rem] font-black text-yellow-400 group-hover:text-yellow-200 drop-shadow-md">{num}</span>
-                  <span className="text-3xl font-bold mt-8 opacity-80 uppercase tracking-widest font-serif">組隊競賽</span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setView('menu')} className="text-yellow-500 hover:text-yellow-300 font-bold text-3xl underline underline-offset-[16px] mt-20 transition-all font-serif">返回主選單</button>
-            <Footer />
-          </div>
-        )}
-
-        {/* 遊戲燈牆 */}
-        {view === 'game' && (
-          <div className="w-full max-w-7xl animate-in fade-in duration-700 pb-24">
-             <div className="text-center mb-12">
-               <span className="bg-red-900/95 px-12 py-4 rounded-full border-2 border-yellow-600 text-yellow-400 font-black text-2xl shadow-xl tracking-widest uppercase">
-                 當前挑戰：第 {(round * 20 + 1).toString()} 至 {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題
-               </span>
-             </div>
-            <div className="bg-red-900/40 backdrop-blur-xl border-4 border-yellow-600/30 rounded-[5rem] p-16 md:p-20 shadow-inner grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-y-24 gap-x-12 justify-items-center">
-              {currentRoundRiddles.map((r, i) => (
-                <Lantern 
-                  key={r.id}
-                  number={round * 20 + i + 1}
-                  category={r.category}
-                  isDone={completed.has(i)}
-                  onClick={() => handleRiddleClick(i)}
-                />
-              ))}
-            </div>
-            <Footer />
-          </div>
-        )}
-
-        {/* 下一輪結算 */}
-        {view === 'roundSummary' && (
-          <div className="text-center space-y-10 animate-in zoom-in duration-500 pb-24">
-            <div className="text-[10rem] mb-6 animate-bounce">🏆</div>
-            <h2 className="text-8xl font-serif font-black text-yellow-500 drop-shadow-md">挑戰完成！</h2>
-            <div className="bg-red-900/60 p-14 rounded-[5rem] border-4 border-yellow-600 inline-block min-w-[550px] shadow-2xl">
-              <p className="text-4xl mb-8 font-bold text-yellow-200 font-serif">第 {(round * 20 + 1).toString()} ~ {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題</p>
-              {mode === 'group' && (
-                <div className="space-y-6 pt-10 border-t-2 border-yellow-600/30">
-                  {[...Array(teamCount)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center text-4xl bg-black/40 px-14 py-8 rounded-[2.5rem]">
-                      <span className="font-black text-yellow-50">第 {(i + 1).toString()} 組</span>
-                      <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-12 justify-center mt-12">
-               <button onClick={() => setView('result')} className="bg-red-800 hover:bg-red-700 text-yellow-400 px-20 py-8 rounded-[3.5rem] text-4xl font-black shadow-xl border-b-8 border-red-950">結束遊戲</button>
-               { (round + 1) * 20 < gameRiddles.length && (
-                 <button onClick={handleNextRound} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-20 py-8 rounded-[3.5rem] text-4xl font-black shadow-xl flex items-center gap-6 border-b-8 border-yellow-800">
-                   下一輪題 <ArrowRight size={44}/>
-                 </button>
-               )}
-            </div>
-            <Footer />
-          </div>
-        )}
-
-        {/* 最終結算 */}
-        {view === 'result' && (
-          <div className="text-center space-y-12 animate-in zoom-in pb-24">
-            <div className="text-[12rem] mb-10 animate-pulse">🎆</div>
-            <h2 className="text-[8rem] font-serif font-black text-yellow-500 drop-shadow-2xl">燈謎大會大成功</h2>
-            <div className="bg-red-900/50 p-20 rounded-[6rem] border-4 border-yellow-600 inline-block min-w-[700px] shadow-2xl">
-              <p className="text-6xl mb-12 font-black text-yellow-100 font-serif">總耗時：<span className="text-yellow-400 font-mono text-[6rem] ml-10">{formatTime(timer)}</span></p>
-              {mode === 'group' && (
-                <div className="space-y-10 pt-12 border-t-4 border-yellow-600/30">
-                  {[...Array(teamCount)].map((_, i) => (
-                    <div key={i} className={`flex justify-between items-center text-6xl px-20 py-12 rounded-[4rem] ${scores[i] === Math.max(...Object.values(scores)) ? 'bg-yellow-600/30 border-4 border-yellow-500 shadow-[0_0_40px_rgba(234,179,8,0.5)]' : 'bg-black/60'}`}>
-                      <span className="font-serif font-black">第 {(i + 1).toString()} 組</span>
-                      <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button onClick={() => setView('menu')} className="block mx-auto mt-20 bg-yellow-600 hover:bg-yellow-500 text-red-950 px-32 py-12 rounded-[5rem] text-6xl font-black shadow-2xl border-b-[16px] border-yellow-800 active:translate-y-2">回主畫面</button>
-            <Footer />
-          </div>
-        )}
-      </main>
-
-      {/* 設定視窗 */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in">
-          <div className="bg-red-900 border-4 border-yellow-600 rounded-[4rem] w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-12 border-b-2 border-yellow-600/30 flex justify-between items-center bg-red-800/80">
-              <div>
-                <h2 className="text-6xl font-serif font-black text-yellow-500 flex items-center gap-4">
-                  <Settings size={48}/> 題庫設定與排序
-                </h2>
-                <p className="text-yellow-200/60 mt-4 text-2xl font-serif">拖曳題目調整順序，序號決定遊戲燈籠編號</p>
-              </div>
-              <button onClick={() => setIsSettingsOpen(false)} className="p-5 hover:bg-white/10 rounded-full text-yellow-500 transition-all">
-                <X size={56} />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-12 custom-scrollbar space-y-10 bg-red-950/40">
-              <div className="bg-red-900 p-8 rounded-[3rem] border-2 border-yellow-600/30 shadow-xl">
-                <h3 className="text-3xl font-serif font-black mb-6 flex items-center gap-3">
-                  <Plus className="text-yellow-500"/> 手動新增題目
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <input type="text" placeholder="類別" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-2xl px-6 py-4 text-2xl outline-none focus:border-yellow-400" />
-                  <input type="text" placeholder="謎題內容" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-2xl px-6 py-4 text-2xl outline-none focus:border-yellow-400" />
-                  <div className="flex gap-6">
-                    <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="flex-1 bg-red-950 border-2 border-yellow-600/50 rounded-2xl px-6 py-4 text-2xl outline-none focus:border-yellow-400" />
-                    <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-10 rounded-2xl font-black hover:bg-yellow-500 text-2xl shadow-lg">新增</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex justify-between items-center mb-8">
-                   <h3 className="text-4xl font-serif font-black">全部題型 ({riddlePool.length.toString()} 題)</h3>
-                   <div className="flex gap-10">
-                     <button onClick={() => setSelectedPoolIds(new Set(riddlePool.map(r => r.id)))} className="text-2xl text-yellow-500 font-bold hover:underline">全選</button>
-                     <button onClick={() => setSelectedPoolIds(new Set())} className="text-2xl text-yellow-500 font-bold hover:underline">全不選</button>
-                   </div>
-                </div>
-                <div className="grid gap-3">
-                  {riddlePool.map((r, idx) => (
-                    <div key={r.id} draggable onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                      className={`bg-red-900/60 p-5 rounded-[2rem] border border-yellow-600/20 flex items-center justify-between group cursor-grab active:cursor-grabbing hover:border-yellow-600/50 transition-all ${draggedIdx === idx ? 'opacity-20 shadow-none' : 'shadow-lg'}`} >
-                      <div className="flex items-center gap-6 flex-1">
-                        <GripVertical className="text-yellow-600/30" size={24} />
-                        <div className="text-2xl font-black text-yellow-500 w-12 text-center">#{idx + 1}</div>
-                        <button onClick={() => { const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950' : 'border-yellow-600/30 text-transparent'}`} >
-                          <Check size={28} strokeWidth={4} />
-                        </button>
-                        <div className="flex flex-col ml-4">
-                          <span className="text-sm text-yellow-500/50 font-black tracking-widest uppercase">{r.category}</span>
-                          <span className="text-xl font-bold line-clamp-1">{r.question}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-10 pr-6">
-                        <span className="text-2xl text-yellow-400 font-mono bg-black/40 px-5 py-2 rounded-2xl border border-yellow-900/50">謎底: {r.answer}</span>
-                        <button onClick={() => setRiddlePool(prev => prev.filter(x => x.id !== r.id))} className="text-red-500 opacity-0 group-hover:opacity-100 p-3 hover:bg-red-500/20 rounded-full transition-all">
-                          <Trash2 size={28} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-12 border-t-2 border-yellow-600/30 text-center bg-red-800">
-               <button onClick={() => setIsSettingsOpen(false)} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-24 py-6 rounded-[3rem] text-4xl font-black shadow-xl border-b-8 border-yellow-800 active:translate-y-1">完成並關閉</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 答題視窗 */}
-      {selectedRiddle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in">
-          <div className="bg-red-800 border-[8px] border-yellow-500 rounded-[6rem] max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-[0_0_150px_rgba(0,0,0,1)] relative custom-scrollbar">
-            
-            {mode === 'group' && (
-              <div className="sticky top-10 left-10 z-50 pointer-events-none">
-                <div className="absolute top-0 left-0 bg-white/90 backdrop-blur-lg text-red-950 px-12 py-5 rounded-full font-serif font-black shadow-2xl border-2 border-red-900/20 text-4xl">
-                  第 {(activeTeamIdx + 1).toString()} 組
-                </div>
-              </div>
-            )}
-
-            <div className="text-center p-16 md:p-24 space-y-20">
-              <div className="inline-block px-14 py-4 bg-yellow-600 text-red-950 rounded-full text-4xl font-serif font-black shadow-lg border-b-8 border-yellow-800">
-                {selectedRiddle.category} 謎題
-              </div>
-              <h3 className="text-7xl md:text-[5.5rem] font-serif font-black leading-tight text-yellow-50 tracking-wider drop-shadow-xl">
-                {selectedRiddle.question}
-              </h3>
-              <div className="flex justify-center gap-8 flex-wrap">
-                {[...selectedRiddle.answer].map((char, i) => (
-                  <div key={i} className={`w-28 h-28 md:w-32 md:h-32 border-4 rounded-[3rem] flex items-center justify-center text-7xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 scale-110 shadow-[0_0_40px_rgba(234,179,8,0.5)]' : 'bg-red-950/50 border-yellow-600/50 text-transparent'}`}>
-                    {(i < hintLevel || showFullAnswer) ? char : '?'}
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-14">
-                {!showFullAnswer && (
-                  <input autoFocus type="text" placeholder="請在此輸入謎底..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
-                    className={`w-full bg-red-950 border-4 rounded-[4rem] px-16 py-12 text-6xl text-center outline-none transition-all placeholder:text-red-900/30 ${feedback === 'correct' ? 'border-green-500 text-green-400' : feedback === 'wrong' ? 'border-red-500 animate-shake' : 'border-yellow-600 focus:border-yellow-400 shadow-inner'}`} />
-                )}
-                <div className="grid grid-cols-2 gap-12">
-                  <button onClick={() => { if(hintLevel < selectedRiddle.answer.length) setHintLevel(h => h+1); }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="py-10 rounded-[3rem] bg-orange-700 hover:bg-orange-600 text-yellow-100 flex items-center justify-center gap-5 disabled:opacity-30 transition-all font-black border-2 border-orange-500/30 text-4xl shadow-2xl">
-                    <Lightbulb size={48}/> 提示一字
-                  </button>
-                  <button onClick={() => { setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="py-10 rounded-[3rem] bg-yellow-900 hover:bg-yellow-800 text-yellow-400 flex items-center justify-center gap-5 disabled:opacity-30 transition-all font-black border-2 border-yellow-700/30 text-4xl shadow-2xl">
-                    <Eye size={48}/> 直接公布
-                  </button>
-                </div>
-                <div className="flex gap-12 pt-12">
-                  <button onClick={() => setSelectedRiddle(null)} className="flex-1 py-10 rounded-[3.5rem] border-4 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-4xl transition-all">離開題目</button>
-                  <button onClick={checkAnswer} className="flex-[2] py-10 rounded-[3.5rem] bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-6xl shadow-2xl transition-transform active:scale-95 border-b-[16px] border-yellow-800">
-                    {showFullAnswer ? (mode === 'group' ? '確認下一組' : '確認下一題') : '確定提交'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵猜燈謎 - 職能治療師 鄭凱文 設計</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
+    <style>
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-20px); } 75% { transform: translateX(20px); } }
         .animate-shake { animation: shake 0.1s ease-in-out infinite; }
-        .custom-scrollbar::-webkit-scrollbar { width: 14px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 20px; border: 4px solid transparent; background-clip: content-box; }
         
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap');
-      `}</style>
-    </div>
-  );
-};
+        .custom-scrollbar::-webkit-scrollbar { width: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+        
+        body {
+            background-color: #450a0a; /* red-950 */
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Noto Serif TC', serif;
+        }
 
-export default App;
+        .calligraphy-title {
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4), 0 0 8px rgba(253, 224, 71, 0.3);
+        }
+
+        .lantern-inner-glow {
+            background: radial-gradient(circle at 50% 40%, rgba(253, 224, 71, 0.35) 0%, transparent 80%);
+        }
+
+        /* 答對後的精緻印章樣式 */
+        .done-stamp {
+            background: linear-gradient(135deg, #166534 0%, #064e3b 100%);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 8px rgba(255,255,255,0.2);
+            border: 2px solid #fde047;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 使用內聯 SVG 確保在 GitHub 上不會失效
+        const SVGIcons = {
+            timer: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            trophy: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+            settings: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            refresh: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>,
+            check: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+            trash: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
+            grip: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>,
+            bulb: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>,
+            eye: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+            user: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            users: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            plus: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+            arrowRight: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+            close: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        };
+
+        const Icon = ({ name, size = 24, className = "" }) => (
+            <span style={{ width: size, height: size }} className={`inline-flex items-center justify-center ${className}`}>
+                {SVGIcons[name] || null}
+            </span>
+        );
+
+        const useSoundEffect = () => {
+            const audioCtxRef = useRef(null);
+            const play = (freq, type, duration, gainValue = 0.1) => {
+                if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+                const ctx = audioCtxRef.current;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            };
+            return {
+                playCorrect: () => { play(523.25, 'sine', 0.4, 0.1); play(659.25, 'sine', 0.4, 0.1); },
+                playWrong: () => play(150, 'sawtooth', 0.3, 0.08),
+                playClick: () => play(880, 'sine', 0.1, 0.05)
+            };
+        };
+
+        const Footer = () => (
+            <div className="w-full text-center py-6 mt-auto">
+                <a href="https://www.facebook.com/mpotkevin" target="_blank" rel="noopener noreferrer" className="text-yellow-500/60 hover:text-yellow-400 font-bold transition-all text-xl flex items-center justify-center gap-2 group">
+                    <span>設計：職能治療師 - 鄭凱文</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">🔗</span>
+                </a>
+            </div>
+        );
+
+        // 題庫數據維持 100 題
+        const INITIAL_RIDDLES = [
+            { id: '1', category: "食物", question: "小白雞，穿白袍，跳進水裡洗個澡，浮上來，變胖了。", answer: "元宵" },
+            { id: '2', category: "動物", question: "八隻腳，抬面鼓，兩把剪刀鼓前舞。", answer: "螃蟹" },
+            { id: '3', category: "植物", question: "一個小姑娘，生在水中央，身穿粉紅衫，坐在綠船上。", answer: "荷花" },
+            { id: '4', category: "物品", question: "一隻八寶袋，吊在門外頭，有人進屋去，它就張開口。", answer: "門簾" },
+            { id: '5', category: "字謎", question: "兩人在一起。", answer: "从" },
+            { id: '6', category: "腦筋急轉彎", question: "什麼路不能走？", answer: "網路" },
+            { id: '7', category: "台灣地名", question: "君子之交（打一地名）。", answer: "淡水" },
+            { id: '8', category: "動物", question: "年紀並不大，鬍子一把抓，不論遇到誰，總愛喊媽媽。", answer: "山羊" },
+            { id: '9', category: "食物", question: "紅紅臉蛋長雀斑，入口酸甜味道鮮，珍珠瑪瑙在裡面。", answer: "石榴" },
+            { id: '10', category: "物品", question: "小紅帽，穿紅袍，站在路邊搖搖搖。", answer: "燈籠" },
+            { id: '11', category: "字謎", question: "一隻黑狗，不叫不吼。", answer: "默" },
+            { id: '12', category: "自然", question: "千條線，萬條線，掉在水裡看不見。", answer: "雨" },
+            { id: '13', category: "物品", question: "一對雙胞胎，進出老一塊，專在嘴門口，給人送飯菜。", answer: "筷子" },
+            { id: '14', category: "動物", question: "大姐用嘴紮燈籠，二姐織網捉飛蟲。", answer: "蜘蛛" },
+            { id: '15', category: "腦筋急轉彎", question: "什麼魚不能吃？", answer: "木魚" },
+            { id: '16', category: "成語", question: "一加一（打一成語）。", answer: "接二連三" },
+            { id: '17', category: "動物", question: "白天草裡住，晚上空中飛，金光閃閃動。", answer: "螢火蟲" },
+            { id: '18', category: "植物", question: "一個老頭子，頭上長鬍子，脫下綠袍子，滿身金珠子。", answer: "玉米" },
+            { id: '19', category: "物品", question: "一塊木板四條腿，雖然有腿不會走。", answer: "桌子" },
+            { id: '20', category: "字謎", question: "一口咬掉牛尾巴。", answer: "告" },
+            { id: '21', category: "台灣地名", question: "雨港（打一地名）。", answer: "基隆" },
+            { id: '22', category: "食物", question: "身穿綠衣裳，肚裡紅瓤子，生下黑種子。", answer: "西瓜" },
+            { id: '23', category: "動物", question: "頭戴紅帽子，身穿白袍子，走路擺架子。", answer: "鵝" },
+            { id: '24', category: "物品", question: "有面無口，有腳無手，聽它講話，沒有舌頭。", answer: "收音機" },
+            { id: '25', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
+            { id: '26', category: "字謎", question: "上邊在水裡，下邊在火裡。", answer: "燙" },
+            { id: '27', category: "腦筋急轉彎", question: "什麼牛不會吃草？", answer: "蝸牛" },
+            { id: '28', category: "物品", question: "遠看像面鼓，近看像面鑼，雖然是個寶，可惜沒耳朵。", answer: "碗" },
+            { id: '29', category: "台灣地名", question: "風城（打一地名）。", answer: "新竹" },
+            { id: '30', category: "動物", question: "耳朵長，尾巴短，紅眼睛，白毛衫。", answer: "兔子" },
+            { id: '31', category: "物品", question: "遠看山有色，近聽水無聲。", answer: "畫" },
+            { id: '32', category: "台灣地名", question: "開門見山（打一地名）。", answer: "台東" },
+            { id: '33', category: "字謎", question: "一隻狗四張嘴。", answer: "器" },
+            { id: '34', category: "腦筋急轉彎", question: "世界上最長的是什麼路？", answer: "套路" },
+            { id: '35', category: "物品", question: "生在山裡，死在鍋裡，埋在罐裡，活在杯裡。", answer: "茶葉" },
+            { id: '36', category: "自然", question: "彩色橋，跨藍天，太陽出來它消失。", answer: "彩虹" },
+            { id: '37', category: "動物", question: "尖尖牙齒長長尾，愛在洞裡捉迷藏。", answer: "老鼠" },
+            { id: '38', category: "食物", question: "青皮包白瓤，外型像條槓。", answer: "絲瓜" },
+            { id: '39', category: "字謎", question: "左邊綠，右邊紅，左右相遇起涼風。", answer: "秋" },
+            { id: '40', category: "物品", question: "兩姊妹，一樣長，酸甜苦辣她先嚐。", answer: "筷子" },
+            { id: '41', category: "自然", question: "紅公公，早起行，傍晚時分落西山。", answer: "太陽" },
+            { id: '42', category: "台灣地名", question: "懷胎十月（打一地名）。", answer: "土城" },
+            { id: '43', category: "成語", question: "螃蟹走路（打一成語）。", answer: "橫行霸道" },
+            { id: '44', category: "動物", question: "大公雞，生來沒羽毛，昂頭叫一聲，全村都知曉。", answer: "鬧鐘" },
+            { id: '45', category: "食物", question: "金枕頭，銀枕頭，剝開皮，肉黃油。", answer: "榴槤" },
+            { id: '46', category: "台灣地名", question: "空中霸王（打一地名）。", answer: "高雄" },
+            { id: '47', category: "台灣地名", question: "把守第一關（打一地名）。", answer: "頭城" },
+            { id: '48', category: "台灣地名", question: "飲水思源（打一地名）。", answer: "澎湖" },
+            { id: '49', category: "台灣地名", question: "雙喜臨門（打一地名）。", answer: "嘉義" },
+            { id: '50', category: "台灣地名", question: "南天門（打一地名）。", answer: "南投" },
+            { id: '51', category: "自然", question: "亮晶晶，掛天空，像眼睛，眨不停。", answer: "星星" },
+            { id: '52', category: "動物", question: "像龍不是龍，生在深海中，游動快如風。", answer: "魚" },
+            { id: '53', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
+            { id: '54', category: "物品", question: "兩隻小口袋，天天隨身帶，腳丫不痛快。", answer: "襪子" },
+            { id: '55', category: "字謎", question: "十個哥哥。", answer: "克" },
+            { id: "56", category: "台灣地名", question: "熱鬧非凡（打一地名）。", answer: "羅東" },
+            { id: "57", category: "食物", question: "金黃外衣穿身上，身材彎彎像小船。", answer: "香蕉" },
+            { id: "58", category: "成語", question: "打雷不下雨（打一成語）。", answer: "虛張聲勢" },
+            { id: "59", category: "自然", question: "白色羽毛漫天飛，冷風一吹地全白。", answer: "雪" },
+            { id: "60", category: "字謎", question: "守門員。", answer: "閃" },
+            { id: "61", category: "台灣地名", question: "忠孝節義（打一地名）。", answer: "善化" },
+            { id: "62", category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
+            { id: "63", category: "動物", question: "會飛不是鳥，愛在夜裡跑，倒掛睡覺好。", answer: "蝙蝠" },
+            { id: "64", category: "物品", question: "圓圓腦殼長長柄，照它一下臉變美。", answer: "鏡子" },
+            { id: "65", category: "字謎", question: "山上還有山。", answer: "出" },
+            { id: "66", category: "食物", question: "紅紅臉，綠頭髮，埋在土裡不說話。", answer: "紅蘿蔔" },
+            { id: "67", category: "台灣地名", question: "地圖（打一地名）。", answer: "台西" },
+            { id: "68", category: "動物", question: "長長脖子高個頭，愛在樹頂吃綠葉。", answer: "長頸鹿" },
+            { id: "69", category: "物品", question: "一扇門，開又關，冷氣跑不出。", answer: "冰箱" },
+            { id: "70", category: "字謎", question: "一月一日。", answer: "明" },
+            { id: "71", category: "台灣地名", question: "北斗星（打一地名）。", answer: "彰化" },
+            { id: "72", category: "腦筋急轉彎", question: "什麼雞沒有翅膀？", answer: "田雞" },
+            { id: "73", category: "自然", question: "來無影，去無踪，能吹動樹葉。", answer: "風" },
+            { id: "74", category: "成語", question: "舉手投降（打一成語）。", answer: "不戰而降" },
+            { id: "75", category: "物品", question: "有風它不動，一動就有風。", answer: "扇子" },
+            { id: "76", category: "字謎", question: "一家十一口。", answer: "吉" },
+            { id: "77", category: "食物", question: "麻屋子，紅帳子，裡面住個白胖子。", answer: "花生" },
+            { id: "78", category: "台灣地名", question: "被子太短（打一地名）。", answer: "鹿谷" },
+            { id: "79", category: "動物", question: "小小游泳家，嘴裡吐泡泡。", answer: "金魚" },
+            { id: '80', category: "字謎", question: "有人有他。", answer: "他" },
+            { id: '81', category: "自然", question: "有時圓圓像個盤，有時彎彎像條船。", answer: "月亮" },
+            { id: '82', category: "物品", question: "一根棍子長又長，頭上開花亮堂堂。", answer: "手電筒" },
+            { id: '83', category: "台灣地名", question: "雙倍利息（打一地名）。", answer: "加祿" },
+            { id: '84', category: "字謎", question: "一月七日。", answer: "脂" },
+            { id: '85', category: "食物", question: "青皮包紅心，黑籽裡面藏。", answer: "西瓜" },
+            { id: '86', category: "動物", question: "大嘴巴，綠衣裳，歌唱家。", answer: "青蛙" },
+            { id: '87', category: "成語", question: "三加四（打一成語）。", answer: "不三不四" },
+            { id: '88', category: "物品", question: "四角方方，薄薄一張，寫字畫畫全靠它。", answer: "紙" },
+            { id: '89', category: "台灣地名", question: "森林之王（打一地名）。", answer: "獅潭" },
+            { id: '90', category: "字謎", question: "有人在心上。", answer: "您" },
+            { id: '91', category: "食物", question: "紅紅罈子，裝滿紅餃子，吐出白珠子。", answer: "橘子" },
+            { id: '92', category: "動物", question: "大姐紮燈籠，二姐織網捉飛蟲。", answer: "蜘蛛" },
+            { id: '93', category: "成語", question: "愚公移山（打一成語）。", answer: "開門見山" },
+            { id: '94', category: "自然", question: "雲兒見它讓路，樹兒見它點頭。", answer: "風" },
+            { id: '95', category: "物品", question: "兩隻小口袋，天天隨身帶。", answer: "襪子" },
+            { id: '96', category: "台灣地名", question: "海中綠洲（打一地名）。", answer: "澎湖" },
+            { id: '97', category: "字謎", question: "十個哥哥。", answer: "克" },
+            { id: '98', category: "食物", question: "白白皮膚嫩又滑，豆子磨成漿來做。", answer: "豆腐" },
+            { id: '99', category: "成語", question: "快刀斬亂麻（打一成語）。", answer: "乾淨俐落" },
+            { id: '100', category: "台灣地名", question: "長生不老（打一地名）。", answer: "恆春" }
+        ];
+
+        const App = () => {
+            const [view, setView] = useState('menu'); 
+            const [mode, setMode] = useState('single'); 
+            const [teamCount, setTeamCount] = useState(2);
+            const [round, setRound] = useState(0); 
+            const [gameRiddles, setGameRiddles] = useState([]); 
+            const [completed, setCompleted] = useState(new Set());
+            const [scores, setScores] = useState({});
+            const [activeTeamIdx, setActiveTeamIdx] = useState(0);
+            const [timer, setTimer] = useState(0);
+            const [selectedRiddle, setSelectedRiddle] = useState(null);
+            const [userInput, setUserInput] = useState('');
+            const [feedback, setFeedback] = useState(null); 
+            const [hintLevel, setHintLevel] = useState(0);
+            const [showFullAnswer, setShowFullAnswer] = useState(false);
+
+            const [riddlePool, setRiddlePool] = useState(INITIAL_RIDDLES);
+            const [selectedPoolIds, setSelectedPoolIds] = useState(new Set(INITIAL_RIDDLES.map(r => r.id)));
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+            const [newRiddle, setNewRiddle] = useState({ category: '自訂', question: '', answer: '' });
+            const [draggedIdx, setDraggedIdx] = useState(null);
+
+            const sound = useSoundEffect();
+
+            useEffect(() => {
+                let interval;
+                if (view === 'game') {
+                    interval = setInterval(() => setTimer(prev => prev + 1), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [view]);
+
+            const handleModeClick = (m) => {
+                sound.playClick();
+                setMode(m);
+                if (m === 'group') setView('teamSelect');
+                else startNewGame(m, 1);
+            };
+
+            const startNewGame = (m, tc) => {
+                const initialScores = {};
+                for (let i = 0; i < tc; i++) initialScores[i] = 0;
+                setScores(initialScores);
+                setTeamCount(tc);
+                setRound(0);
+                setCompleted(new Set());
+                setTimer(0);
+                setActiveTeamIdx(0);
+                const availablePool = riddlePool.filter(r => selectedPoolIds.has(r.id));
+                setGameRiddles(availablePool);
+                setView('game');
+            };
+
+            const handleNextRound = () => {
+                sound.playClick();
+                if ((round + 1) * 20 >= gameRiddles.length) setView('result');
+                else {
+                    setRound(prev => prev + 1);
+                    setCompleted(new Set());
+                    setView('game');
+                }
+            };
+
+            const currentRoundRiddles = gameRiddles.slice(round * 20, (round + 1) * 20);
+
+            const handleRiddleClick = (index) => {
+                if (completed.has(index)) return;
+                sound.playClick();
+                setSelectedRiddle({ ...currentRoundRiddles[index], index });
+                setUserInput('');
+                setFeedback(null);
+                setHintLevel(0);
+                setShowFullAnswer(false);
+            };
+
+            const checkAnswer = () => {
+                if (userInput.trim() === selectedRiddle.answer || showFullAnswer) {
+                    setFeedback('correct');
+                    sound.playCorrect();
+                    setCompleted(prev => {
+                        const next = new Set(prev);
+                        next.add(selectedRiddle.index);
+                        return next;
+                    });
+                    setScores(prev => ({ ...prev, [activeTeamIdx]: (prev[activeTeamIdx] || 0) + (showFullAnswer ? 0 : 1) }));
+                    setTimeout(() => {
+                        setSelectedRiddle(null);
+                        if (mode === 'group') setActiveTeamIdx((activeTeamIdx + 1) % teamCount);
+                        if (completed.size + 1 === Math.min(20, currentRoundRiddles.length)) setView('roundSummary');
+                    }, 1200);
+                } else {
+                    setFeedback('wrong');
+                    sound.playWrong();
+                    setTimeout(() => setFeedback(null), 1000);
+                }
+            };
+
+            const handleDragStart = (idx) => setDraggedIdx(idx);
+            const handleDragOver = (e) => e.preventDefault();
+            const handleDrop = (idx) => {
+                if (draggedIdx === null || draggedIdx === idx) return;
+                sound.playClick();
+                const newPool = [...riddlePool];
+                const draggedItem = newPool[draggedIdx];
+                newPool.splice(draggedIdx, 1);
+                newPool.splice(idx, 0, draggedItem);
+                setRiddlePool(newPool);
+                setDraggedIdx(null);
+            };
+
+            const addNewRiddle = () => {
+                if (!newRiddle.question || !newRiddle.answer) return;
+                sound.playClick();
+                const id = Date.now().toString();
+                setRiddlePool(prev => [{ ...newRiddle, id }, ...prev]);
+                setSelectedPoolIds(prev => new Set(prev).add(id));
+                setNewRiddle({ category: '自訂', question: '', answer: '' });
+            };
+
+            const formatTime = (s) => {
+                const mins = Math.floor(s / 60);
+                const secs = s % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const Lantern = ({ number, category, isDone, onClick }) => (
+                <div onClick={onClick} className={`relative cursor-pointer transition-all duration-500 group flex flex-col items-center ${isDone ? 'opacity-50' : 'hover:scale-110 active:scale-95'}`}>
+                    {/* 類別標籤 */}
+                    <div className={`mb-3 px-4 py-1 rounded-full text-sm font-black border transition-all shadow-sm ${isDone ? 'bg-gray-800 text-gray-400 border-gray-600' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500 group-hover:text-red-950'}`}>
+                        {category}
+                    </div>
+
+                    <div className="relative">
+                        {/* 提手繩 */}
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-yellow-600/50" />
+                        
+                        {/* 燈籠本體 */}
+                        <div className={`w-28 h-32 rounded-[3rem] relative flex items-center justify-center border-2 overflow-hidden transition-all shadow-[0_8px_20px_rgba(0,0,0,0.5)] ${isDone ? 'bg-gray-800 border-gray-600' : 'bg-gradient-to-b from-red-500 via-red-600 to-red-800 border-yellow-500/40'}`}>
+                            {!isDone && <div className="absolute inset-0 lantern-inner-glow" />}
+                            
+                            {/* 燈籠架線條 */}
+                            <div className="absolute inset-0 flex justify-around px-5 pointer-events-none opacity-20">
+                                <div className="w-px h-full bg-black/40" />
+                                <div className="w-px h-full bg-black/40" />
+                            </div>
+
+                            {/* 數字 - 如果完成則縮小並降低透明度 */}
+                            <span className={`text-white font-serif font-black transition-all ${isDone ? 'text-2xl opacity-20' : 'text-5xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'}`}>
+                                {number}
+                            </span>
+
+                            {/* 上下箍環 */}
+                            <div className="absolute top-0 w-full h-2.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800 border-b border-yellow-900/50" />
+                            <div className="absolute bottom-0 w-full h-2.5 bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-800 border-t border-yellow-900/50" />
+                        </div>
+
+                        {/* 底部流蘇 */}
+                        <div className="flex flex-col items-center mt-[-2px]">
+                            <div className="w-6 h-1 bg-yellow-600 rounded-sm" />
+                            <div className="w-0.5 h-4 bg-red-700" />
+                            <div className="flex gap-0.5">
+                                <div className="w-1.5 h-10 bg-red-600 rounded-full origin-top animate-pulse" />
+                                <div className="w-1.5 h-12 bg-red-700 rounded-full origin-top animate-pulse" />
+                                <div className="w-1.5 h-10 bg-red-600 rounded-full origin-top animate-pulse" />
+                            </div>
+                        </div>
+
+                        {/* 答對後的精緻印章樣式 */}
+                        {isDone && (
+                            <div className="absolute -top-2 -right-2 z-30">
+                                <div className="done-stamp w-12 h-12 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                    <Icon name="check" size={28} className="text-yellow-200" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-red-950 text-yellow-100 font-sans selection:bg-yellow-500 selection:text-red-950 overflow-hidden relative flex flex-col">
+                    {/* 背景動態裝飾 */}
+                    <div className="absolute inset-0 opacity-5 pointer-events-none overflow-hidden">
+                        {[...Array(10)].map((_, i) => (
+                            <div key={i} className="absolute border-2 border-yellow-500 rounded-full w-96 h-48" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, transform: `rotate(${Math.random() * 360}deg)` }} />
+                        ))}
+                    </div>
+
+                    {(view === 'game' || view === 'roundSummary') && (
+                        <div className="bg-red-900/90 backdrop-blur-md border-b-2 border-yellow-600 p-4 sticky top-0 z-40 shadow-2xl flex flex-wrap justify-between items-center gap-4 font-serif">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
+                                    <Icon name="timer" size={22} className="text-yellow-400" />
+                                    <span className="font-mono text-2xl">{formatTime(timer)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-yellow-700 shadow-inner">
+                                    <Icon name="trophy" size={22} className="text-yellow-400" />
+                                    <span className="text-2xl font-bold">{completed.size} / {Math.min(20, currentRoundRiddles.length)}</span>
+                                </div>
+                            </div>
+                            {mode === 'group' && (
+                                <div className="flex items-center justify-center gap-2 flex-grow max-w-2xl px-4">
+                                    {[...Array(teamCount)].map((_, i) => (
+                                        <button key={i} onClick={() => { sound.playClick(); setActiveTeamIdx(i); }} className={`flex-1 min-w-0 max-w-[150px] px-2 py-2 rounded-2xl border-2 transition-all flex flex-col items-center group relative ${activeTeamIdx === i ? 'bg-yellow-600 text-red-950 border-yellow-300 shadow-[0_0_20px_rgba(234,179,8,0.5)] scale-105' : 'bg-red-800 border-red-700 text-yellow-600 hover:border-yellow-900'}`}>
+                                            <span className="text-[12px] uppercase font-black opacity-80 truncate w-full text-center">Team {i + 1}</span>
+                                            <span className="text-3xl font-black">{(scores[i] || 0).toString()}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex gap-2">
+                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="p-3 hover:bg-white/10 rounded-full transition-all text-yellow-500"><Icon name="refresh" size={28} /></button>
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4">
+                        {view === 'menu' && (
+                            <div className="max-w-4xl w-full text-center space-y-16 animate-in fade-in zoom-in duration-700">
+                                <div className="relative inline-block mb-4 group">
+                                    <div className="relative">
+                                        <h1 className="text-9xl md:text-[11.5rem] font-serif font-black tracking-widest leading-tight drop-shadow-[0_10px_20px_rgba(0,0,0,0.7)] bg-clip-text text-transparent bg-gradient-to-b from-yellow-50 via-yellow-500 to-yellow-900 calligraphy-title">
+                                            元宵猜燈謎
+                                        </h1>
+                                        <div className="absolute -inset-x-12 -bottom-2 h-[4px] bg-gradient-to-r from-transparent via-yellow-700/60 to-transparent" />
+                                    </div>
+                                    <p className="mt-12 text-yellow-200/80 text-4xl font-serif italic tracking-[0.5em] drop-shadow-sm opacity-90">
+                                        舊時燈謎新玩法，健腦暖心慶元宵
+                                    </p>
+                                </div>
+                                <div className="space-y-8 flex flex-col items-center w-full pt-10">
+                                    <button onClick={() => handleModeClick('single')} className="w-full max-w-md bg-red-700 hover:bg-red-600 text-yellow-100 py-8 rounded-[3rem] text-4xl font-black border-b-[12px] border-red-950 transition-all flex items-center justify-center gap-5 active:translate-y-2 active:border-b-[4px] shadow-2xl">
+                                        <Icon name="user" size={40}/> 個人模式挑戰
+                                    </button>
+                                    <button onClick={() => handleModeClick('group')} className="w-full max-w-md bg-yellow-600 hover:bg-yellow-500 text-red-950 py-8 rounded-[3rem] text-4xl font-black border-b-[12px] border-yellow-800 transition-all flex items-center justify-center gap-5 active:translate-y-2 active:border-b-[4px] shadow-2xl">
+                                        <Icon name="users" size={40}/> 分組趣味競賽
+                                    </button>
+                                </div>
+                                <button onClick={() => { sound.playClick(); setIsSettingsOpen(true); }} className="fixed bottom-10 right-10 bg-red-900/90 backdrop-blur-md p-8 rounded-full border-2 border-yellow-600 shadow-[0_0_30px_rgba(0,0,0,0.4)] hover:bg-red-800 hover:scale-110 transition-all text-yellow-500 z-30 group">
+                                    <Icon name="settings" size={48} className="group-hover:rotate-180 transition-transform duration-1000" />
+                                </button>
+                                <Footer />
+                            </div>
+                        )}
+
+                        {view === 'teamSelect' && (
+                            <div className="max-w-5xl w-full text-center space-y-10 animate-in fade-in slide-in-from-bottom duration-500">
+                                <h2 className="text-8xl font-serif font-black text-yellow-500 mb-20 drop-shadow-lg">請選擇競賽組數</h2>
+                                <div className="grid grid-cols-3 gap-12 p-4">
+                                    {[2, 3, 4].map(num => (
+                                        <button key={num} onClick={() => { sound.playClick(); startNewGame('group', num); }} className="bg-red-800 hover:bg-red-700 border-4 border-yellow-600 rounded-[4rem] py-24 transition-all transform hover:scale-105 flex flex-col items-center group shadow-2xl">
+                                            <span className="text-9xl md:text-[11rem] font-black text-yellow-400 group-hover:text-yellow-200 drop-shadow-md">{num}</span>
+                                            <span className="text-4xl font-bold mt-8 opacity-80 uppercase tracking-widest font-serif">組隊競賽</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="text-yellow-500 hover:text-yellow-300 font-bold text-4xl underline underline-offset-[16px] mt-20 transition-all font-serif">返回主選單</button>
+                                <Footer />
+                            </div>
+                        )}
+
+                        {view === 'game' && (
+                            <div className="w-full max-w-7xl animate-in fade-in duration-700 pb-24">
+                                <div className="text-center mb-16">
+                                    <span className="bg-red-900/95 px-14 py-5 rounded-full border-2 border-yellow-600 text-yellow-400 font-black text-3xl shadow-xl tracking-widest uppercase font-serif">
+                                        當前挑戰：第 {(round * 20 + 1).toString()} 至 {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題
+                                    </span>
+                                </div>
+                                <div className="bg-red-900/40 backdrop-blur-xl border-4 border-yellow-600/30 rounded-[5rem] p-16 md:p-24 shadow-inner grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-y-28 gap-x-14 justify-items-center">
+                                    {currentRoundRiddles.map((r, i) => (
+                                        <Lantern key={r.id} number={round * 20 + i + 1} category={r.category} isDone={completed.has(i)} onClick={() => handleRiddleClick(i)} />
+                                    ))}
+                                </div>
+                                <Footer />
+                            </div>
+                        )}
+
+                        {view === 'roundSummary' && (
+                            <div className="text-center space-y-10 animate-in zoom-in duration-500 pb-24">
+                                <div className="text-[12rem] mb-6 animate-bounce">🏆</div>
+                                <h2 className="text-[7rem] font-serif font-black text-yellow-500 drop-shadow-md">挑戰完成！</h2>
+                                <div className="bg-red-900/60 p-16 rounded-[5rem] border-4 border-yellow-600 inline-block min-w-[600px] shadow-2xl">
+                                    <p className="text-5xl mb-10 font-bold text-yellow-200 font-serif">第 {(round * 20 + 1).toString()} ~ {(round * 20 + Math.min(20, currentRoundRiddles.length)).toString()} 題</p>
+                                    {mode === 'group' && (
+                                        <div className="space-y-6 pt-10 border-t-2 border-yellow-600/30">
+                                            {[...Array(teamCount)].map((_, i) => (
+                                                <div key={i} className="flex justify-between items-center text-5xl bg-black/40 px-16 py-10 rounded-[3rem]">
+                                                    <span className="font-black text-yellow-50">第 {(i + 1).toString()} 組</span>
+                                                    <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex gap-12 justify-center mt-12">
+                                    <button onClick={() => { sound.playClick(); setView('result'); }} className="bg-red-800 hover:bg-red-700 text-yellow-400 px-24 py-10 rounded-[4rem] text-5xl font-black shadow-xl border-b-[12px] border-red-950 transition-all">結束遊戲</button>
+                                    { (round + 1) * 20 < gameRiddles.length && (
+                                        <button onClick={handleNextRound} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-24 py-10 rounded-[4rem] text-5xl font-black shadow-xl flex items-center gap-8 border-b-[12px] border-yellow-800 transition-all">
+                                            下一輪題 <Icon name="arrowRight" size={48}/>
+                                        </button>
+                                    )}
+                                </div>
+                                <Footer />
+                            </div>
+                        )}
+
+                        {view === 'result' && (
+                            <div className="text-center space-y-12 animate-in zoom-in pb-24">
+                                <div className="text-[12rem] mb-10 animate-pulse">🎆</div>
+                                <h2 className="text-[8.5rem] font-serif font-black text-yellow-500 drop-shadow-2xl">燈謎大會大成功</h2>
+                                <div className="bg-red-900/50 p-24 rounded-[6rem] border-4 border-yellow-600 inline-block min-w-[800px] shadow-2xl">
+                                    <p className="text-7xl mb-14 font-black text-yellow-100 font-serif">總耗時：<span className="text-yellow-400 font-mono text-[7rem] ml-12">{formatTime(timer)}</span></p>
+                                    {mode === 'group' && (
+                                        <div className="space-y-10 pt-14 border-t-4 border-yellow-600/30">
+                                            {[...Array(teamCount)].map((_, i) => (
+                                                <div key={i} className={`flex justify-between items-center text-7xl px-24 py-14 rounded-[4rem] ${scores[i] === Math.max(...Object.values(scores)) ? 'bg-yellow-600/30 border-4 border-yellow-500 shadow-[0_0_50px_rgba(234,179,8,0.5)]' : 'bg-black/60'}`}>
+                                                    <span className="font-serif font-black">第 {(i + 1).toString()} 組</span>
+                                                    <span className="font-black text-yellow-400">{(scores[i] || 0).toString()} 分</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <button onClick={() => { sound.playClick(); setView('menu'); }} className="block mx-auto mt-24 bg-yellow-600 hover:bg-yellow-500 text-red-950 px-32 py-12 rounded-[5.5rem] text-7xl font-black shadow-2xl border-b-[16px] border-yellow-800 active:translate-y-2">回主畫面</button>
+                                <Footer />
+                            </div>
+                        )}
+                    </main>
+
+                    {/* 設定視窗 */}
+                    {isSettingsOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in">
+                            <div className="bg-red-900 border-4 border-yellow-600 rounded-[5rem] w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden font-serif">
+                                <div className="p-14 border-b-2 border-yellow-600/30 flex justify-between items-center bg-red-800/80">
+                                    <div>
+                                        <h2 className="text-7xl font-black text-yellow-500 flex items-center gap-6"><Icon name="settings" size={64}/> 題庫設定</h2>
+                                        <p className="text-yellow-200/60 mt-5 text-3xl font-serif">拖曳題目調整順序，序號決定遊戲燈籠編號</p>
+                                    </div>
+                                    <button onClick={() => { sound.playClick(); setIsSettingsOpen(false); }} className="p-6 hover:bg-white/10 rounded-full text-yellow-500 transition-all"><Icon name="close" size={64} /></button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-14 custom-scrollbar space-y-12 bg-red-950/40">
+                                    <div className="bg-red-900 p-10 rounded-[4rem] border-2 border-yellow-600/30 shadow-xl">
+                                        <h3 className="text-4xl font-black mb-8 flex items-center gap-4"><Icon name="plus" size={40}/> 手動新增題目</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                            <input type="text" placeholder="類別" value={newRiddle.category} onChange={e => setNewRiddle(s => ({...s, category: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
+                                            <input type="text" placeholder="謎題內容" value={newRiddle.question} onChange={e => setNewRiddle(s => ({...s, question: e.target.value}))} className="bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
+                                            <div className="flex gap-8">
+                                                <input type="text" placeholder="謎底" value={newRiddle.answer} onChange={e => setNewRiddle(s => ({...s, answer: e.target.value}))} className="flex-1 bg-red-950 border-2 border-yellow-600/50 rounded-[2rem] px-8 py-5 text-3xl outline-none focus:border-yellow-400 text-white" />
+                                                <button onClick={addNewRiddle} className="bg-yellow-600 text-red-950 px-12 rounded-[2rem] font-black hover:bg-yellow-500 text-3xl shadow-lg transition-all">新增</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-8">
+                                        <div className="flex justify-between items-center mb-10">
+                                            <h3 className="text-5xl font-black">全部題型 ({riddlePool.length.toString()} 題)</h3>
+                                            <div className="flex gap-12">
+                                                <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set(riddlePool.map(r => r.id))); }} className="text-3xl text-yellow-500 font-bold hover:underline">全選</button>
+                                                <button onClick={() => { sound.playClick(); setSelectedPoolIds(new Set()); }} className="text-3xl text-yellow-500 font-bold hover:underline">全不選</button>
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-4">
+                                            {riddlePool.map((r, idx) => (
+                                                <div key={r.id} draggable onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
+                                                    className={`bg-red-900/60 p-6 rounded-[2.5rem] border border-yellow-600/20 flex items-center justify-between group cursor-grab active:cursor-grabbing hover:border-yellow-600/50 transition-all ${draggedIdx === idx ? 'opacity-20 shadow-none' : 'shadow-lg'}`} >
+                                                    <div className="flex items-center gap-8 flex-1 text-white">
+                                                        <Icon name="grip" size={32} className="text-yellow-600/30" />
+                                                        <div className="text-3xl font-black text-yellow-500 w-16 text-center">#{idx + 1}</div>
+                                                        <button onClick={() => { sound.playClick(); const n = new Set(selectedPoolIds); if(n.has(r.id)) n.delete(r.id); else n.add(r.id); setSelectedPoolIds(n); }} className={`w-12 h-12 rounded-[1rem] border-2 flex items-center justify-center transition-all ${selectedPoolIds.has(r.id) ? 'bg-yellow-500 border-yellow-200 text-red-950' : 'border-yellow-600/30 text-transparent'}`} ><Icon name="check" size={32} /></button>
+                                                        <div className="flex flex-col ml-6">
+                                                            <span className="text-xl text-yellow-500/50 font-black tracking-widest uppercase">{r.category}</span>
+                                                            <span className="text-3xl font-bold line-clamp-1">{r.question}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-12 pr-8">
+                                                        <span className="text-3xl text-yellow-400 font-mono bg-black/40 px-8 py-3 rounded-[1.5rem] border border-yellow-900/50">謎底: {r.answer}</span>
+                                                        <button onClick={() => { sound.playClick(); setRiddlePool(prev => prev.filter(x => x.id !== r.id)); }} className="text-red-500 opacity-0 group-hover:opacity-100 p-4 hover:bg-red-500/20 rounded-full transition-all"><Icon name="trash" size={36} /></button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-14 border-t-2 border-yellow-600/30 text-center bg-red-800"><button onClick={() => { sound.playClick(); setIsSettingsOpen(false); }} className="bg-yellow-600 hover:bg-yellow-500 text-red-950 px-28 py-8 rounded-[4rem] text-5xl font-black shadow-xl border-b-[12px] border-yellow-800 transition-all">完成並關閉</button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {selectedRiddle && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in">
+                            <div className="bg-red-800 border-[10px] border-yellow-500 rounded-[7rem] max-w-6xl w-full max-h-[92vh] overflow-y-auto shadow-[0_0_150px_rgba(0,0,0,1)] relative custom-scrollbar">
+                                {mode === 'group' && (
+                                    <div className="sticky top-12 left-12 z-50 pointer-events-none">
+                                        <div className="absolute top-0 left-0 bg-white/90 backdrop-blur-lg text-red-950 px-14 py-6 rounded-full font-serif font-black shadow-2xl border-2 border-red-900/20 text-5xl">
+                                            第 {(activeTeamIdx + 1).toString()} 組
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="text-center p-20 md:p-28 space-y-24">
+                                    <div className="inline-block px-16 py-5 bg-yellow-600 text-red-950 rounded-full text-5xl font-serif font-black shadow-lg border-b-8 border-yellow-800">{selectedRiddle.category} 謎題</div>
+                                    <h3 className="text-8xl md:text-[6rem] font-serif font-black leading-tight text-yellow-50 tracking-wider drop-shadow-xl">{selectedRiddle.question}</h3>
+                                    <div className="flex justify-center gap-10 flex-wrap">
+                                        {[...selectedRiddle.answer].map((char, i) => (
+                                            <div key={i} className={`w-32 h-32 md:w-36 md:h-36 border-4 rounded-[4rem] flex items-center justify-center text-8xl font-black transition-all ${i < hintLevel || showFullAnswer ? 'bg-yellow-500 text-red-950 border-yellow-200 scale-110 shadow-[0_0_50px_rgba(234,179,8,0.5)]' : 'bg-red-950/50 border-yellow-600/50 text-transparent'}`}>
+                                                {(i < hintLevel || showFullAnswer) ? char : '?'}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-16">
+                                        {!showFullAnswer && (
+                                            <input autoFocus type="text" placeholder="請在此輸入謎底..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
+                                                className={`w-full bg-red-950 border-4 rounded-[5rem] px-20 py-16 text-7xl text-center outline-none transition-all placeholder:text-red-900/30 text-white ${feedback === 'correct' ? 'border-green-500 text-green-400' : feedback === 'wrong' ? 'border-red-500 animate-shake' : 'border-yellow-600 focus:border-yellow-400 shadow-inner'}`} />
+                                        )}
+                                        <div className="grid grid-cols-2 gap-16">
+                                            <button onClick={() => { sound.playClick(); if(hintLevel < selectedRiddle.answer.length) setHintLevel(h => h+1); }} disabled={hintLevel >= selectedRiddle.answer.length || showFullAnswer} className="py-12 rounded-[4rem] bg-orange-700 hover:bg-orange-600 text-yellow-100 flex items-center justify-center gap-8 disabled:opacity-30 transition-all font-black border-2 border-orange-500/30 text-5xl shadow-2xl"><Icon name="bulb" size={56}/> 提示一字</button>
+                                            <button onClick={() => { sound.playClick(); setShowFullAnswer(true); setUserInput(selectedRiddle.answer); }} disabled={showFullAnswer} className="py-12 rounded-[4rem] bg-yellow-900 hover:bg-yellow-800 text-yellow-400 flex items-center justify-center gap-8 disabled:opacity-30 transition-all font-black border-2 border-yellow-700/30 text-5xl shadow-2xl"><Icon name="eye" size={56}/> 直接公布</button>
+                                        </div>
+                                        <div className="flex gap-16 pt-16">
+                                            <button onClick={() => { sound.playClick(); setSelectedRiddle(null); }} className="flex-1 py-12 rounded-[4.5rem] border-4 border-yellow-700/50 hover:bg-red-700 text-yellow-600 font-serif font-black text-5xl transition-all">離開題目</button>
+                                            <button onClick={checkAnswer} className="flex-[2] py-12 rounded-[4.5rem] bg-yellow-500 hover:bg-yellow-400 text-red-950 font-black text-7xl shadow-2xl transition-transform active:scale-95 border-b-[20px] border-yellow-800">
+                                                {showFullAnswer ? (mode === 'group' ? '確認下一組' : '確認下一題') : '確定提交'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
